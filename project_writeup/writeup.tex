@@ -1,0 +1,269 @@
+% Author: Jack Holt
+
+% Final Year Project writeup .tex file
+
+\documentclass{UoYCSproject}
+
+% Package declarations
+\usepackage{prftree} % Proof Trees and Natural Deduction Rules
+\usepackage{listings} % Typesetting Source Code Examples
+
+\usepackage{qtree} % Parse Trees
+% Sets courier font on parse trees
+\newcommand{\qlabelhook}{\ttfamily}
+\newcommand{\qleafhook}{\ttfamily}
+
+\usepackage[dvipsnames]{xcolor} % More colors
+
+% Flow Diagrams
+\usepackage{tikz}
+\usetikzlibrary{arrows, shapes.geometric}
+
+\usepackage{amsmath} %embedding normal text in math block
+
+% Bibliography file
+\addbibresource{project.bib}
+
+% Front Matter:
+\title{Generation of Type Checking Code}
+\author{Jack Holt}
+\date{27th January 2019}
+\supervisor{Jeremy L. Jacob}
+\BEng % Degree Type
+
+\dedication{}
+\acknowledgements{}
+
+% Project Content
+\begin{document}
+
+
+% Make flowchart boxes used in figures
+\tikzstyle{box} = [rectangle, rounded corners, text centered, draw=black]
+\tikzstyle{arrow} = [thick, ->, >=stealth]
+
+% Instansiate front matter and other beginning pages
+\maketitle
+\listoffigures
+\pagenumbering{roman}
+
+% Summary
+\begin{summary}
+\end{summary}
+
+\chapter{Introduction}
+
+\section{Project Outline}
+
+% Outline of Hypothesis and Research Question
+\chapter{Background}
+
+\section{Data Types}
+
+The concept of data types is fundamental to programming languages and provides
+us with a way of organising our data into meaningful abstractions with which we
+can perform computation. However, the addition of data types to programming
+languages introduces new problems which can occur when constructing our programs.
+
+One of the biggest issues is the problem of type inconsistency within expressions
+or other language constructs. Consider the C++ program in Figure \ref{fig:C++TypeError}.
+There are no syntax errors, but it is still an incorrect program due to the
+``x+y" expression in Line~9. An attempt is made to add an integer to a string,
+an operation whose meaning is ambigious without further specification. In order
+to catch programs with type inconsistencies before the program is moved further
+down the compiler pipeline, we need a way of asserting that the types of every
+expression in a program are correct, with respect to a type system. This task
+is the role of a programming language type checker, and is discussed more in
+Section \ref{sec:Chap1TypeChecking}.
+
+% C++ Code Example
+\begin{figure}
+\lstset{language=C++,
+    basicstyle=\footnotesize\ttfamily,
+    numbers=left,
+    frame=single
+    }
+\lstinputlisting{code-examples/type_inconsistency.cpp}
+\caption{Example C++ program with a type error.}
+\label{fig:C++TypeError}
+\end{figure}
+
+\section{Static Semantics}
+% Talk about how static semantics are usually derived from
+% dynamic semantics to prove that the relationship between the two is preserved.
+% For this project, not our responsibility to do this, we are trying to create
+% a system which generates a type checker from specified type rules. The
+% derivation of these rules is not performed by the program.
+The concept of type checking falls under the study of programming langauge
+semantics, the study of program meaning (as opposed to language syntax, which is
+the study of program form). It is vital for the semantic rules of a programming
+langauge to assign precisely one meaning to each program expressed in that
+langauge. Failure to do so would result in the potential creation of an
+ambiguous program which has multiple meanings, and may behave differently every
+time it is compiled or interpreted \cite[p.~114]{Sebesta}.
+
+Semantics can be further broken down into two kinds, static semantics and
+dynamic semantics. Static semantics concerns itself with various kinds
+of compile-time checks such as type checking and scope analysis, while dynamic
+semantics is focused more on the program meaning described in the previous
+paragraph. As this project is to do with type checking, dynamic semantics isn't
+really explored in this project much. However numerous papers have been written
+proposing various algorithms and methods for deriving type rules and type
+systems from dynamic semnatic rules \textit{<insert-references-here>}. This could
+be interesting to explore in the future.
+
+\section{Type Systems \& Type Rules}
+
+% Introducing the two major views on type systems
+A type system, as described by Sebesta, \textit{``is a set of types and the rules that
+    govern their use in programs"} \cite[6, p.~309]{Sebesta}.
+There are two main views on what a type system encompasses, pioneered by two
+major computer scientists, Alonzo Church and Haskell B. Curry.
+Church took what is known as the ``prescriptive" view of type systems, which is
+the belief that \textit{``types are predefined conditions to ensure meaningfulness"}
+and \textit{``for a program to even have a meaning, it must be well-typed"}
+\cite{NeilJones}. Curry adopted an opposing ``descriptive" view of type systems
+and believed that \textit{``any program can be executed"} and \textit{``a type
+    is a way of classifying or describing the values that a program manipulates"}
+\cite{NeilJones}.
+
+% Compare the two views, and conclude that we will be following the descriptive
+% view of types.
+The type systems which will be generated with the generation tool will be
+descriptive. We won't be considering typeless programs or expressions which
+despite not having a type, still perform interesting computation (for example
+the Y-Combinator in the simply typed lambda calculus)\cite{NeilJones} \cite[p.~28]{SimonPeytonJones}
+\cite[p.~155]{SimonPeytonJones}.
+
+We can express our type rules as natural deduction rules using the following
+syntax:
+\begin{displaymath}
+    \prftree[l,r]{\scriptsize [Side-Conditions]}{\scriptsize RuleName}{J_1 \dots J_n}{C}
+\end{displaymath}
+where $J_k$ and $C$ are judgements. Judgements are logical statements of the form:
+\begin{displaymath}
+    \Gamma \vdash e:T \quad or \quad \Gamma \vdash \lfloor s \rfloor valid
+\end{displaymath}
+Here $e$ and $s$ represent expressions and statements respectively in the source
+programming language, and $T$ represents a type in the source language. The
+decision to express type rules using this style of notation stems from the desire
+for this piece of work to be compatible with the BNFC tool for generating lexers
+and parsers \cite{BNFC}. The notation and tool are discussed by Aarne Ranta in
+his book \cite{Ranta}, and will be expanded upon in Section \ref{sec:BNFC}. An example
+of a type rule in a simple langauge for evaluating boolean expressions could be
+as follows:
+\begin{displaymath}
+    \prftree[l]{\scriptsize \&\&}{\Gamma \vdash a:Bool}{\Gamma \vdash b:Bool}{\Gamma \vdash a \&\& b: Bool}
+\end{displaymath}
+This rule reads as ``given the context $\Gamma$, the expression $a \&\& b$
+is of type $Bool$ only if the expression $a$ is of type $Bool$ and the expression $b$
+is of type $Bool$.
+
+\section{Type Checking}
+\label{sec:Chap1TypeChecking}
+The type checker is the next component in the compiler pipeline after the
+lexing/parsing unit. As an input, the type checker receives an Abstract Syntax
+Tree from the parser. The tree is a representation of the semantics of the
+program. The type checker steps through this Abstract Syntax Tree, applying
+type rules like those discussed in the previous section, to each node. If we
+can construct a tree of type rule deductions in this fashion, then we have a
+proof that all expressions and statements in that program are type consistent.
+If however, a tree cannot be constructed, then the program is improper and
+can be rejected.
+
+Consider Figure \ref{fig:ParseAndProofTree}, which uses the
+type rule specified in the previous section:
+To stop the proof tree from becoming too wide, I've abbreviated $True$ to $\top$,
+$False$ to $\bot$ and the type $Bool$ to $B$.
+% Parse and Proof Tree Example
+\begin{figure}
+    \begin{tikzpicture}
+        \node (Code) [box] {\ttfamily True \&\& False \&\& True};
+        \node (ParseTree) [box, below of=Code, yshift=-2cm] {\Tree [.EAnd [.EBool True ] [.EAnd [.EBool False ] [.EBool True ] ] ]};
+        \node (ProofTree) [box, below of=ParseTree, yshift=-3.2cm, minimum height=2.8cm, minimum width=12.5cm] {
+            \prftree[l]{\scriptsize \&\&}{
+                \prftree[l]{\scriptsize trueLiteral}{\Gamma \vdash \top:B}}{
+                \prftree[l]{\scriptsize \&\&}{
+                    \prftree[l]{\scriptsize falseLiteral}{\Gamma \vdash \bot:B}}{
+                    \prftree[l]{\scriptsize trueLiteral}{\Gamma \vdash \top:B}}{
+                    \Gamma \vdash \bot \&\& \top: B}}{
+                \Gamma \vdash \top \&\& (\bot \&\& \top): B}
+            };
+            \draw [arrow] (Code) -- node [anchor=west] {\scriptsize when parsed becomes} (ParseTree);
+            \draw [arrow] (ParseTree) -- node [anchor=west] {\scriptsize is proven to be well-typed by} (ProofTree);
+        \end{tikzpicture}
+    \caption{A abstract syntax tree for a simple boolean expression, and its corresponding proof tree}
+    \label{fig:ParseAndProofTree}
+\end{figure}
+Notice how the proof tree mirrors the structure of the Abstract Syntax Tree.
+Each type rule application happens at a node in the parse tree.
+
+\section{Generating Type Checkers vs. Generating Lexers \& Parsers}
+The generation of Lexers and Parsers is considered a solved problem by many in
+the Computer Science community. Tools exist which either take a set of regular
+expressions or a context free grammar, and produce an efficient Lexer or
+Parser. The same cannot be currently said for type checkers. \textit{This
+    section will be fleshed out more in the coming days}
+
+
+% Exploration of currently available tools and key texts and literature
+\chapter{Literature Review}
+
+\section{Backus-Naur Form Converter (BNFC)}
+\label{sec:BNFC}
+
+The Backus-Naur Form Converter (BNFC) is a tool for generating lexer and parser
+compiler units. It takes as an input a Labelled BNF grammar \cite{LBNFReport},
+in the form of a {\ttfamily .cf} file, and produces a set of source code files
+which, when used together, can parse the source language described in the
+grammar. Given some input language specification {\ttfamily source\_lang.cf},
+the following output files are produced. A description is provided for each
+file:
+\begin{itemize}
+    \item {\ttfamily AbsSourceLang.hs} - a Haskell module containing the Abstract
+        Data Types for the nodes of the Abstract Syntax Tree built by the
+        parser
+    \item {\ttfamily LexSourceLang.x} - an Alex file containing a description
+        of the lexer for the source language
+    \item {\ttfamily ParSourceLang.y} - a Happy file containing a description
+        of the parser for the source language
+    \item {\ttfamily TestSourceLang.hs} - a Haskell module which, using the lexer
+        and parser, parses either a source file or input from stdin and
+        displays the resulting Abstract Syntax Tree
+    \item {\ttfamily DocSourceLang.txt} - a text file with some brief
+        documentation describing the input grammar
+    \item {\ttfamily SkelSourceLang.hs} -
+    \item {\ttfamily PrintSourceLang.hs} - a Haskell module 
+    \item {\ttfamily ErrM.hs} - a Haskell module describing a Monad for handling
+        errors when parsing the source language (Monads will be discussed more
+        in Section \ref{sec:CategoryTheory})
+    \item {\ttfamily Makefile} - a Makefile which runs Alex and Happy on the
+        lexer and parser respectively, and compiles and links the object files
+        to create an executable
+\end{itemize}
+
+\section{Attribute Grammars \& Syntax Directed Translation}
+\cite{KnuthGrammars}\cite{DragonBook}
+
+\section{Context \& Environment Mutation}
+\cite{PierceTAPL}
+
+\section{Applying Category Theory To Type Checking}
+\label{sec:CategoryTheory}
+\cite{MilewskiCTFP}
+
+\chapter{Developing a Type Rule Plaintext Syntax}
+
+\section{Exploring a Previous Example: Typical}
+\cite{Typical}
+
+\section{A First Draft}
+
+\section{Shuffling Syntax and Eliminating Dependencies}
+
+\chapter{Type Checker Generation}
+
+
+
+\printbibliography
+\end{document}
