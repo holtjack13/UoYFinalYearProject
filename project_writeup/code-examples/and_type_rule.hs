@@ -1,4 +1,5 @@
 check :: Env -> Exp -> Type -> Err Bool
-check e (And a b) Bool = check e a Bool && check e b Bool 
-check e (TrueLiteral) Bool = Ok True
-check e (FalseLiteral) Bool = Ok True
+check e (Or a b) TBool = check e a TBool `safeAnd` 
+                         check e b TBool
+check e (TrueLiteral) TBool = Ok True
+check e (FalseLiteral) TBool = Ok True
