@@ -23,6 +23,7 @@
 
 \usepackage{subcaption} % Used for multi-figures
 
+% Nice code font
 \usepackage[T1]{fontenc}
 \usepackage{sourcecodepro}
 
@@ -32,27 +33,31 @@
 % Front Matter:
 \title{Generation of Type Checking Code}
 \author{Jack Holt}
-\date{5th March 2019}
+\date{22nd March 2019}
 \supervisor{Jeremy L. Jacob}
 \BEng % Degree Type
 
-\dedication{}
-\acknowledgements{}
+\dedication{To Mr Rowley, who revealed the incredible depth and power of
+    mathematics to my unsuspecting mind for the first time.}
+\acknowledgements{I would like to thank my supervisor, Jeremy Jacob, for his
+    continued assistance and informative feedback over the course of this
+    project. I would also like to thank my family for their support when I've
+    needed it most, and my friends for making the journey to this point a
+    memorable one.}
 
 % Project Content
 \begin{document}
 
-
 % Make flowchart boxes used in figures
 \tikzstyle{flowbox} = [rectangle, rounded corners, text centered, draw=black]
-\tikzstyle{archbox} = [rectangle, text centered, draw=black, 
+\tikzstyle{archbox} = [rectangle, text centered, draw=black,
 text width=0.25*\columnwidth, minimum height=1cm]
 \tikzstyle{dashedarchbox} = [rectangle, text centered, draw=black, dashed,
 text width=0.25*\columnwidth, minimum height=1cm]
 \tikzstyle{label} = [text centered, text width=0.25*\columnwidth]
 \tikzstyle{arrow} = [thick, ->, >=stealth]
 
-% Instansiate front matter and other beginning pages
+% Instantiate front matter and other beginning pages
 \maketitle
 \listoffigures
 \pagenumbering{roman}
@@ -75,68 +80,60 @@ we can perform computation. Whether or not data types are implemented in a
 programming language can be considered a design trade-off by the language
 designer.
 
-Not implementing data types would make the language less complex and,
-in some cases, provide a higher level of expressibility for the programmer as
-there are fewer type restrictions on each operation. Two examples of programming 
-languages which don't make use of complex types are most assembly languages, 
-and LISP, developed by John McCarthy in 1958. Assembly languages represent
-instructions and data as numeric values, with the each instruction opcode being
-applied to $n$ data operands. To improve readability, mnemonics are mapped to
-each opcode, as well as key registers used by the CPU. LISP is 
-known for its simplicity and can treat programs and data as one and the same 
-thing because of it. Figure \ref{fig:SimpleTypedLanguages} contains some code 
-snippets in both languages. The drawback of not using a more complex type system
-is that the onus of checking for type inconsistencies is placed on the programmer
-as this cannot be checked by the compiler in these languages.
+Not implementing data types could make the implementation of a language easier
+or more difficult relative to typed languages, depending on the priority of
+language safety. In order for a untyped language to be considered safe, as
+defined by Cardelli \cite[p.~3]{CSHandbook}, run-time checks would need to be added
+to check for \textit{untrapped errors}, such as incorrect memory jumps and
+reading memory past the bounds of an array. These checks could result in
+decreased run-time performance of programs. LISP, developed by John McCarthy in
+1958, is considered to be an untyped safe language, whilst most assembly
+languages are classified as untyped and unsafe. Typed languages can usually
+eliminate the need for many run-time checks by performing them at compile-time.
+
+In some cases untyped languages provide a higher level of expressibility for
+the programmer, as there are fewer type restrictions on each operation.
+LISP is known for its expressive power due to its ability to treat programs and
+data as one and the same thing. A consequence of this is the ease of which
+powerful programming techniques such as meta-programming can be utilised to
+produce domain specific languages designed for solving a distinct class of
+problems \cite[p.~5]{SICP}. Figure \ref{fig:SimpleTypedLanguages} contains a
+simple LISP example showcasing its syntax.
 
 \begin{figure}
-    \begin{minipage}[b]{.45\textwidth}
-        \lstset{frame=single,
-            basicstyle=\footnotesize\ttfamily,
-            keywordstyle=\color{Orange},
-            identifierstyle=\color{MidnightBlue},
-            stringstyle=\color{OliveGreen},
-        }
-        \lstinputlisting{code-examples/programs_and_data.rkt}
-        \subcaption{LISP}
-        \label{fig:LISP}
-    \end{minipage} \hfill
-    \begin{minipage}[b]{.5\textwidth}
-        \lstset{language=[x86masm]Assembler,
-            frame=single,
-            basicstyle=\scriptsize\ttfamily,
-            keywordstyle=\color{Orange},
-            identifierstyle=\color{MidnightBlue},
-            stringstyle=\color{OliveGreen},
-        }
-        \lstinputlisting{code-examples/add.asm}
-        \subcaption{x86 Assembly}
-        \label{fig:Assembly}
-    \end{minipage}
-    \caption{Simply Typed Languages}
+    \lstset{frame=single,
+        language=Lisp,
+        numbers=left,
+        basicstyle=\footnotesize\ttfamily,
+        keywordstyle=\color{Orange},
+        identifierstyle=\color{MidnightBlue},
+        stringstyle=\color{OliveGreen},
+    }
+    \lstinputlisting{code-examples/programs_and_data.rkt}
+    \caption{A LISP example}
     \label{fig:SimpleTypedLanguages}
 \end{figure}
 
-
-Introducing data types into a programming language provides its own benefits
+Introducing static typing into a programming language provides its own benefits
 to both the programmer and the language compiler/interpreter. By analysing the
-types of each computational expression in a given program either at compile-time
-or run-time, the language can assist the programmer in finding type 
+types of each computational expression in a given program at compile-time,
+the language can assist the programmer in finding type
 inconsistencies which would result in silent erroneous calculations. This type
-analysis can also be used by the compiler to allocate the optimal amount of 
-space required to store the information used by the program. 
+analysis can also be used by the compiler to allocate the optimal amount of
+space required to store the information used by the program.
 
 Consider the C++ program in Figure \ref{fig:C++TypeError}.
-There are no syntax errors, but it is still an incorrect program due to the
+There are no syntax errors, but it is still incorrect due to the
 ``x+y" expression in Line~9. An attempt is made to add an integer to a string,
 an operation whose meaning is ambiguous without further specification. This
-error is caught thanks to the strong type system of C++.
+error is caught at compile-time thanks to the strong type system of C++.
 
 Because of the prevalence of strong type systems in modern programming
 languages, it could be argued that modern programmers have accepted they would
 rather have better checking capabilities with less expressibility, than more
 expressibility with worse checking capabilities. Hence the study of type systems
-and type checking seems worthwhile and in a modern programmer's best interests.
+and type checking seems worthwhile and in a modern language designer's best
+interests.
 
 % C++ Code Example
 \begin{figure}
@@ -171,13 +168,18 @@ time it is compiled or interpreted \cite[p.~114]{Sebesta}.
 
 Semantics can be further broken down into two kinds, static semantics and
 dynamic semantics. Static semantics concerns itself with various kinds
-of compile-time checks such as type checking and scope analysis, while dynamic
+of compile-time checks such as type checking and scope analysis. Mosses
+describes static semantics as the \textit{``checking for well-formedness"} of
+programs before they are compiled and executed \cite{Mosses}. Dynamic
 semantics is focused more on the program meaning described in the previous
-paragraph. As this project is to do with type checking, dynamic semantics isn't
-really explored in this project much. However numerous papers have been written
+paragraph, and requires the program to be executed in order for that meaning to
+be determined.
+
+As this project is focused on type checking, dynamic semantics
+isn't explored here. However a few papers have been written
 proposing various algorithms and methods for deriving type rules and type
-systems from dynamic semantic rules \textit{<insert-references-here>}. This could
-be interesting to explore in the future.
+systems from dynamic semantic rules \cite{NeilJones} \cite{JohnHannan}. This could
+be an interesting avenue to explore in future projects relating to type checkers.
 
 \section{Type Systems \& Type Rules}
 \label{sec:Chap1TypeSystems}
@@ -208,22 +210,29 @@ syntax:
 \begin{displaymath}
     \prftree[l,r]{\scriptsize [Side-Conditions]}{\scriptsize RuleName}{J_1 \dots J_n}{C}
 \end{displaymath}
-where $J_k$ and $C$ are judgements. Judgements are logical statements of the form:
+where $J_k$ for $k=1, \dots ,n$ and $C$ are judgements. Judgements are logical 
+statements of the form:
 \begin{displaymath}
-    \Gamma \vdash e:T \quad or \quad \Gamma \vdash \lfloor s \rfloor valid
+    \Gamma \vdash \mathbb{A}
 \end{displaymath}
-Here $e$ and $s$ represent expressions and statements respectively in the source
-programming language, and $T$ represents a type in the source language. The
-decision to express type rules using this style of notation stems from the desire
-for this piece of work to be compatible with the BNFC tool for generating lexers
-and parsers \cite{BNFC}. The notation and tool are discussed by Aarne Ranta in
-his book \cite{Ranta}, and will be expanded upon in Section \ref{sec:BNFC}. An example
-of a type rule in a simple language for evaluating boolean expressions could be
-as follows:
+Here, $\mathbb{A}$ represents an assertion which is made about some object and
+its type. $\Gamma$ represents the environment (or context as it's sometimes
+referred to) in which the assertion in evaluated. This notation is used by both
+Cardelli \cite[p.~8]{CSHandbook} and by Ranta \cite{Ranta} to describe judgements.
+
+The decision to express type rules using this style of notation stems from the 
+desire to maintain a common language of type rules for readers of Ranta's key
+text \textit{``Implementing Programming Languages"} \cite{Ranta}, which is a key 
+text for learning the BNFC tool \cite{BNFC}. The BNFC tool is used throughout
+this project, with a detailed breakdown of it taking place in Section 
+\ref{sec:BNFC}. 
+
+An example of a type rule in a simple language for evaluating boolean 
+expressions is as follows:
 \begin{displaymath}
     \prftree[l]{\scriptsize \&\&}{\Gamma \vdash a:Bool}{\Gamma \vdash b:Bool}{\Gamma \vdash a \, \&\& \, b: Bool}
 \end{displaymath}
-This rule reads as ``given the context $\Gamma$, the expression $a \&\& b$
+This rule reads as ``given any context $\Gamma$, the expression $a \, \&\& \, b$
 is of type $Bool$ only if the expression $a$ is of type $Bool$ and the expression $b$
 is of type $Bool$.
 
@@ -304,8 +313,6 @@ file:
         of the parser for the source language
     \item {\ttfamily ErrM.hs} - a Haskell module describing a Monad for handling
         errors when parsing the source language (Monads will be discussed more
-        in Section \ref{sec:CategoryTheory})
-    \item {\ttfamily Makefile} - a Makefile which runs Alex and Happy on the
         lexer and parser respectively, and compiles and links TestSourceLang.hs
         to create an executable
 \end{itemize}
@@ -333,7 +340,7 @@ is the Attribute Grammar \cite{KnuthGrammars}. An attribute grammar is a
 context-free grammar which has been extended to include additional semantic
 rules, tied to each non-terminal symbol. These additional rules are known as
 attributes. Sebesta provides a nice example of an attribute grammar for an
-assignment statement in a simple language, shown in Figure 
+assignment statement in a simple language, shown in Figure
 \ref{fig:AttributeGrammar}.
 
 \begin{figure}
@@ -361,11 +368,70 @@ assignment statement in a simple language, shown in Figure
     \label{fig:AttributeGrammar}
 \end{figure}
 
-\textit{Ignore the example above for now, it's incorrect. I'm working on creating
-    an example attribute grammar which fits the context of the project
-    appropriately.}
+\section{Applying Category Theory To Type Checking}
+\label{sec:CategoryTheory}
+Using a functional language like Haskell provides us with the capability to
+create elegant abstractions with which we can perform powerful computations
+with. By borrowing some ideas from Category Theory, we can enhance our Abstract
+Syntax data structures with desirable properties to make type checker generation
+easier.
 
-\textit{This section will be completed as soon as possible}
+\subsection{Functors}
+The first abstraction we will borrow from Category Theory is the Functor. The
+use of higher order functions is becoming ever more prevalent in modern
+programming languages, especially functions such as \lstinline{map},
+\lstinline{filter} and \lstinline{foldr}. The \lstinline{map} function in
+particular is incredibly powerful, as it can take a function and a list as
+input, and repeatedly apply that function to every element in the list returning
+a new list as a result. The following Haskell code provides an implementation
+of \lstinline{map}:
+\lstset{language=Haskell,
+    basicstyle=\footnotesize\ttfamily,
+    keywordstyle=\color{Orange},
+    identifierstyle=\color{MidnightBlue},
+    stringstyle=\color{OliveGreen},
+    showstringspaces=false,
+    frame=single}
+\lstinputlisting{code-examples/map.hs}
+From looking at the function signature, it can be seen that map only works on
+lists. But what if we wanted to apply map to a data structure other than list?
+The Functor allows us to do this. A data structure is considered a Functor if
+it provides an implementation of the \lstinline{fmap} function, with the
+following type signature:
+\lstinputlisting{code-examples/fmap.hs}
+Here, \lstinline{f} is our data structure. The \lstinline{fmap} function
+generalises the map function to some data structure \lstinline{f}. An example
+of this concept being used specifically in this project could be...
+
+\textit{I'm working on a suitable example for this section...}
+
+\subsection{Monads}
+We can extend the concept of the Functor further to make use of another
+abstraction known as a Monad. A Monad is a data structure which implements the
+following two operations, described here in Haskell:
+\lstinputlisting{code-examples/monad.hs}
+Monads provide us with a way of seperating pure and impure computation which
+may have side-effects. A very useful application of this is in error handling
+and performing operations which may or may not fail. If we find when type
+checking that our program fails, we should attempt to diagnose the problem and
+report back to the user. A data structure for this very purpose is generated by
+the BNFC tool and stored in the {\ttfamily ErrM.hs} file mentioned in Section
+\ref{sec:BNFC}, shown below:
+\lstinputlisting{code-examples/err.hs}
+If the computation is successful then we can return some value of type
+{\ttfamily a}, otherwise we return a string which explains the error. The
+{\ttfamily >>=} operator provides us with to chain together computations using
+the {\ttfamily Err} data type. If at any point the computation produces an
+error, we can simply propagate the error message to the end of the computation
+chain. Consider the following type checking code:
+%\lstinputlisting{code-examples/monad_type_check.hs}
+
+\textit{Working on a do-notation example demonstrating the Err data structure...}
+
+\subsection{Foldables}
+
+\cite{MilewskiCTFP}
+\cite{HuttonHaskell}
 
 \section{Advanced Type Rules \& Context}
 With attribute grammars annotating the program abstract syntax tree with type
@@ -386,14 +452,7 @@ Consider the following type rule:
 Rules like the one above are easy to translate into
 Haskell and seem to have a predictable form which can be generated. Consider
 the following Haskell source code:
-\lstset{language=Haskell,
-    basicstyle=\footnotesize\ttfamily,
-    keywordstyle=\color{Orange},
-    identifierstyle=\color{MidnightBlue},
-    stringstyle=\color{OliveGreen},
-    showstringspaces=false,
-    frame=single}
-\lstinputlisting{code-examples/and_type_rule.hs} 
+\lstinputlisting{code-examples/and_type_rule.hs}
 
 The consequents of the rule appear as arguments to the check function on the
 left hand side, and the antecedents appear as the function body on the right
@@ -463,104 +522,47 @@ by Pierce \cite{PierceTAPL}:
     pointers, etc...}
 
 
-\section{Applying Category Theory To Type Checking}
-\label{sec:CategoryTheory}
 
-Using a functional language like Haskell provides us with the capability to
-create elegant abstractions with which we can perform powerful computations
-with. By borrowing some ideas from Category Theory, we can enhance our Abstract
-Syntax data structures with desirable properties to make type checker generation
-easier.
+\chapter{Problem Analysis}
+\section{Project Requirements}
+The sucess of this project is measured by how many different type rules are
+expressible in the type system language, and how well the generator is able to
+implement those rules in the form of a type checker.
 
-\subsection{Functors}
-The first abstraction we will borrow from Category Theory is the Functor. The
-use of higher order functions is becoming ever more prevalent in modern
-programming languages, especially functions such as \lstinline{map},
-\lstinline{filter} and \lstinline{foldr}. The \lstinline{map} function in
-particular is incredibly powerful, as it can take a function and a list as
-input, and repeatedly apply that function to every element in the list returning
-a new list as a result. The following Haskell code provides an implementation
-of \lstinline{map}:
-\lstinputlisting{code-examples/map.hs}
-From looking at the function signature, it can be seen that map only works on
-lists. But what if we wanted to apply map to a data structure other than list?
-The Functor allows us to do this. A data structure is considered a Functor if
-it provides an implementation of the \lstinline{fmap} function, with the
-following type signature:
-\lstinputlisting{code-examples/fmap.hs}
-Here, \lstinline{f} is our data structure. The \lstinline{fmap} function
-generalises the map function to some data structure \lstinline{f}. An example
-of this concept being used specifically in this project could be...
-
-\textit{I'm working on a suitable example for this section...}
-
-\subsection{Monads}
-We can extend the concept of the Functor further to make use of another
-abstraction known as a Monad. A Monad is a data structure which implements the
-following two operations, described here in Haskell:
-\lstinputlisting{code-examples/monad.hs}
-Monads provide us with a way of seperating pure and impure computation which
-may have side-effects. A very useful application of this is in error handling
-and performing operations which may or may not fail. If we find when type
-checking that our program fails, we should attempt to diagnose the problem and
-report back to the user. A data structure for this very purpose is generated by
-the BNFC tool and stored in the {\ttfamily ErrM.hs} file mentioned in Section
-\ref{sec:BNFC}, shown below:
-\lstinputlisting{code-examples/err.hs}
-If the computation is successful then we can return some value of type
-{\ttfamily a}, otherwise we return a string which explains the error. The
-{\ttfamily >>=} operator provides us with to chain together computations using
-the {\ttfamily Err} data type. If at any point the computation produces an
-error, we can simply propagate the error message to the end of the computation
-chain. Consider the following type checking code:
-%\lstinputlisting{code-examples/monad_type_check.hs}
-
-\textit{Working on a do-notation example demonstrating the Err data structure...}
-
-\subsection{Foldables}
-
-\cite{MilewskiCTFP}
-
-\section{Exploring a Previous Example: Typical}
-\cite{Typical}
-
-\chapter{Developing a Type Rule Plaintext Syntax}
-
-\section{The Bigger Picture}
-
+\section{Software Component Analysis}
 The end product we are creating requires us to take into account many different
 software components. To better understand these components and how they depend
 on each other, we can construct an component diagram to help us visualise
 the relationships. The diagram is shown in Figure \ref{fig:SoftwareComponents}.
 The components this project focuses on are highlighted in red. This chapter
-will focus on the development of the Type Language Specification and the 
-Type Rule Lexer/Parser generated from it, while Chapter 5 will focus on the 
+will focus on the development of the Type Language Specification and the
+Type Rule Lexer/Parser generated from it, while Chapter 5 will focus on the
 Type Checker Generator.
 
-\begin{figure}
+\begin{figure}[!ht]
     \begin{tikzpicture}
-        \node (SLSC) [label] {Source Language Source Code};
-        \node (TLS) [label, above of=SLSC, color=red, yshift=3cm] {Type System Language Specification};
-        \node (SLL/P) [archbox, right of=SLSC, xshift=3cm] {Source Language Lexer/Parser};
-        \node (SLTC) [archbox, right of=SLL/P, xshift=3cm] {Source Language Type Checker};
-        \node (TCG) [archbox, above of=SLTC, yshift=1cm, color=red] {Type Checker Generator};
-        \node (BNFC) [archbox, above of=SLL/P, yshift=3cm] {BNFC};
-        \node (TCGL/P) [archbox, above of=TCG, yshift=1cm, xshift=2cm, color=red] {Type Rule Lexer/Parser};
-        \node (CBE) [dashedarchbox, right of=SLTC, xshift=3cm] {Compiler Backend};
-        \node (TR) [label, above of=TCGL/P, yshift=1cm] {Type Rule Specification};
-        \node (SLS) [label, above of=BNFC, yshift=1cm] {Source Language Specification};
+        \node (SLSC) [label] {\footnotesize Source Language Source Code};
+        \node (TLS) [label, above of=SLSC, color=red, yshift=2.25cm] {\footnotesize Type System Language Specification};
+        \node (SLL/P) [archbox, right of=SLSC, xshift=3cm] {\footnotesize Source Language Lexer/Parser};
+        \node (SLTC) [archbox, right of=SLL/P, xshift=3cm] {\footnotesize Source Language Type Checker};
+        \node (TCG) [archbox, above of=SLTC, yshift=0.75cm, color=red] {\footnotesize Type Checker Generator};
+        \node (BNFC) [archbox, above of=SLL/P, yshift=2.25cm] {\footnotesize BNFC};
+        \node (TCGL/P) [archbox, above of=TCG, yshift=0.5cm, xshift=1cm, color=red] {\footnotesize Type Rule Lexer/Parser};
+        \node (CBE) [dashedarchbox, right of=SLTC, xshift=3cm] {\footnotesize Compiler Backend};
+        \node (TR) [label, above of=TCGL/P, yshift=0.5cm] {\footnotesize Type Rule Specification};
+        \node (SLS) [label, above of=BNFC, yshift=0.5cm] {\footnotesize Source Language Specification};
 
         \draw [arrow] (SLS) -- (BNFC);
         \draw [arrow] (TR) -- (TCGL/P);
         \draw [arrow] (SLSC) -- (SLL/P);
         \draw [arrow] (TLS) -- (BNFC);
-        \draw [arrow] (BNFC) -- node [anchor=east] {\footnotesize generates}(SLL/P);
-        \draw [arrow] (BNFC) -- node [anchor=south] {\footnotesize generates}(TCGL/P);
+        \draw [arrow] (BNFC) -- node [anchor=east] {\scriptsize generates}(SLL/P);
+        \draw [arrow] (BNFC) -- node [anchor=south] {\scriptsize generates}(TCGL/P);
         \draw [arrow] (SLL/P) -- (SLTC);
-        \draw [arrow] (TCG) -- node [anchor=west] {\footnotesize generates} (SLTC);
+        \draw [arrow] (TCG) -- node [anchor=west] {\scriptsize generates} (SLTC);
         \draw [arrow] (TCGL/P) -- (TCG);
         \draw [arrow] (SLTC) -- (CBE);
-        \draw [arrow] (SLS) .. controls +(up:8cm) and +(right:12cm) .. (TCG);
+        \draw [arrow] (SLS) .. controls +(up:4cm) and +(right:12cm) .. (TCG);
     \end{tikzpicture}
 
     \caption{A diagram relating the various components of the source language with
@@ -568,17 +570,65 @@ Type Checker Generator.
     \label{fig:SoftwareComponents}
 \end{figure}
 
+\chapter{Type System Language}
 
-\section{Initial Language Design and Ideas}
+\section{Initial Language Design}
+When designing the type system language, we first considered what we might
+want the language to look like. The initial idea was to create a language which
+mirrored the mathematical notation for describing type rules we have presented
+throughout the project. This resulted in an initial plaintext language
+demonstrated in Figure \ref{fig:InitialTypeLanguage}. This language seemed to
+be able to express a large number of type rules, but upon further investigation
+a number of flaws were exposed. The main issue with this initial draft was that
+it created a direct dependency on the source language we were describing type
+rules for. The consequences of this would result in a new type system language
+needing to be constructed before we described a new source language. This would
+require a large amount of work from the user, and would also expose the type
+system language implementation, requiring the user to understand more than
+should be assumed.
+
+\begin{figure}
+\lstset{basicstyle=\footnotesize\ttfamily, frame=single,
+    language=,}
+\lstinputlisting{code-examples/TypeSpecification1.txt}
+\caption{Type rules for variables and addition written in the initial type
+    description language}
+\label{fig:InitialTypeLanguage}
+\end{figure}
+
+\section{Eliminating Source Language Dependency}
+After much thinking and consideration, a way of disconnecting the dependency
+between the source language and type system language was found. For this idea
+to work, we must assume that the user has created a BNFC specification for their
+source language and has successfully used the BNFC tool to produce the output
+files described in Section \ref{sec:BNFC}, which is reasonable. The solution
+involves encoding every instance of source language used in the type rule
+specification as strings, and using the parsing functions produced by BNFC to
+acquire the AST for those snippets of source language. These ASTs can then be
+merged with the AST produced by the Type System Language to provide the full
+type rule descriptions, without depending on the source language itself. The
+parsing functions will be called in the Type Checker Generator. Examples in the
+revised language are shown in Figure \ref{fig:RevisedTypeLanguage}.
+
+\begin{figure}
+\lstset{basicstyle=\footnotesize\ttfamily, frame=single,
+    language=,}
+\lstinputlisting{code-examples/TypeSpecification2.txt}
+\caption{Type rules for variables and addition written in the revised type
+    description language without the source language dependency}
+\label{fig:RevisedTypeLanguage}
+\end{figure}
 
 
-\section{Shuffling Syntax and Eliminating Dependencies}
+\section{Adding a Context Description System}
+
+\section{Adding Support for Different Side-Conditions}
 
 \chapter{Type Checker Generation}
 
+\section{Generating Basic Type Checkers}
+
 \chapter{Results and Evaluation}
-
-
 
 \printbibliography
 \end{document}

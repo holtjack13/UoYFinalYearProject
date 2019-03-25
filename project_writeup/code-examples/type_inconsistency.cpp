@@ -4,7 +4,7 @@
 int main()
 {
     int x = 5;
-    std::string y = "dog";
+    std::string y = "six";
 
     std::cout << x + y << std::endl;
 }

@@ -1,0 +1,10 @@
+VarDec:
+    {}
+    A |- a:Int
+    [if a:Int in A];
+
+IntAdd:
+    {A |- a:Int, A |- b:Int}
+    A |- a+b:Int
+    [];
+

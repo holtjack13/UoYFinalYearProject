@@ -1,0 +1,11 @@
+types = {Int, Bool}
+
+VarDec:
+    {}
+    [if "a": Int in G]
+    G |- "a": Int ;
+
+LessThan:
+    {G |- "a": Int, G |- "b": Int}
+    []
+    G |- "a < b": Bool ;
