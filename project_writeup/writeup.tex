@@ -8,10 +8,13 @@
 \usepackage{prftree} % Proof Trees and Natural Deduction Rules
 \usepackage{listings} % Typesetting Source Code Examples
 
+% Slanted Fractions
+\usepackage{xfrac}
+
 \usepackage{qtree} % Parse Trees
 % Sets courier font on parse trees
-\newcommand{\qlabelhook}{\ttfamily}
-\newcommand{\qleafhook}{\ttfamily}
+\newcommand{\qlabelhook}{\small\ttfamily}
+\newcommand{\qleafhook}{\small\ttfamily}
 
 \usepackage[dvipsnames]{xcolor} % More colors
 
@@ -27,13 +30,16 @@
 \usepackage[T1]{fontenc}
 \usepackage{sourcecodepro}
 
+% Define theorem environment
+\newtheorem{definition}{Definition}[section]
+
 % Bibliography file
 \addbibresource{project.bib}
 
 % Front Matter:
 \title{Generation of Type Checking Code}
 \author{Jack Holt}
-\date{22nd March 2019}
+\date{27th March 2019}
 \supervisor{Jeremy L. Jacob}
 \BEng % Degree Type
 
@@ -97,7 +103,7 @@ LISP is known for its expressive power due to its ability to treat programs and
 data as one and the same thing. A consequence of this is the ease of which
 powerful programming techniques such as meta-programming can be utilised to
 produce domain specific languages designed for solving a distinct class of
-problems \cite[p.~5]{SICP}. Figure \ref{fig:SimpleTypedLanguages} contains a
+problems \cite[\S1, p.~5]{SICP}. Figure \ref{fig:SimpleTypedLanguages} contains a
 simple LISP example showcasing its syntax.
 
 \begin{figure}
@@ -133,7 +139,7 @@ languages, it could be argued that modern programmers have accepted they would
 rather have better checking capabilities with less expressibility, than more
 expressibility with worse checking capabilities. Hence the study of type systems
 and type checking seems worthwhile and in a modern language designer's best
-interests.
+interest.
 
 % C++ Code Example
 \begin{figure}
@@ -160,11 +166,12 @@ interests.
 % derivation of these rules is not performed by the program.
 The concept of type checking falls under the study of programming language
 semantics, the study of program meaning (as opposed to language syntax, which is
-the study of program form). It is vital for the semantic rules of a programming
-language to assign precisely one meaning to each program expressed in that
-language. Failure to do so would result in the potential creation of an
-ambiguous program which has multiple meanings, and may behave differently every
-time it is compiled or interpreted \cite[p.~114]{Sebesta}.
+the study of program form) \cite[\S3.1, p.~114]{Sebesta}. It is vital for the 
+semantic rules of a programming language to assign precisely one meaning to 
+each program expressed in that language. Failure to do so would result in the 
+potential creation of an ambiguous program which has multiple meanings, and may 
+behave differently every time it is compiled or interpreted 
+\cite[\S3.3.1.7 ,p.~123]{Sebesta}.
 
 Semantics can be further broken down into two kinds, static semantics and
 dynamic semantics. Static semantics concerns itself with various kinds
@@ -186,7 +193,7 @@ be an interesting avenue to explore in future projects relating to type checkers
 
 % Introducing the two major views on type systems
 A type system, as described by Sebesta, \textit{``is a set of types and the rules that
-    govern their use in programs"} \cite[\S6, p.~309]{Sebesta}.
+    govern their use in programs"} \cite[\S6.15, p.~309]{Sebesta}.
 There are two main views on what a type system encompasses, pioneered by two
 major computer scientists, Alonzo Church and Haskell B. Curry.
 Church took what is known as the ``prescriptive" view of type systems, which is
@@ -202,8 +209,8 @@ and believed that \textit{``any program can be executed"} and \textit{``a type
 The type systems which will be generated with the generation tool will be
 descriptive. We will not be considering typeless programs or expressions which
 despite not having a type, still perform interesting computation (for example
-the Y-Combinator in the simply typed lambda calculus)\cite{NeilJones} \cite[p.~28]{SimonPeytonJones}
-\cite[p.~155]{SimonPeytonJones}.
+the Y-Combinator in the simply typed lambda calculus) \cite{NeilJones} 
+\cite[p.~28]{SimonPeytonJones} \cite[p.~155]{SimonPeytonJones}.
 
 We can express our type rules as natural deduction rules using the following
 syntax:
@@ -218,7 +225,8 @@ statements of the form:
 Here, $\mathbb{A}$ represents an assertion which is made about some object and
 its type. $\Gamma$ represents the environment (or context as it's sometimes
 referred to) in which the assertion in evaluated. This notation is used by both
-Cardelli \cite[p.~8]{CSHandbook} and by Ranta \cite{Ranta} to describe judgements.
+Cardelli \cite[p.~8]{CSHandbook} and by Ranta \cite[\S4.4, p.~60]{Ranta} to 
+describe judgements.
 
 The decision to express type rules using this style of notation stems from the 
 desire to maintain a common language of type rules for readers of Ranta's key
@@ -297,7 +305,7 @@ debated \cite{NeilJones}.
 \label{sec:BNFC}
 
 The Backus-Naur Form Converter (BNFC) is a tool for generating lexer and parser
-compiler units. It takes as an input a Labelled BNF grammar \cite{LBNFReport},
+components. It takes as an input a Labelled BNF grammar \cite{LBNFReport},
 in the form of a {\ttfamily .cf} file, and produces a set of source code files
 which, when used together, can parse the source language described in the
 grammar. Given some input language specification {\ttfamily source\_lang.cf},
@@ -339,27 +347,73 @@ integrate it into the compiler pipeline? One method, conceived by Donald Knuth
 is the Attribute Grammar \cite{KnuthGrammars}. An attribute grammar is a
 context-free grammar which has been extended to include additional semantic
 rules, tied to each non-terminal symbol. These additional rules are known as
-attributes. Sebesta provides a nice example of an attribute grammar for an
-assignment statement in a simple language, shown in Figure
-\ref{fig:AttributeGrammar}.
+attributes. Attribute grammars are sometimes referred to as 
+\textit{syntax-directed definitions} which are used to perform 
+\textit{syntax-directed translation} \cite{DragonBook}. This is because the 
+abstract syntax tree is the designated data structure which is carried
+through many of the compilation phases.
+
+\subsection{Formal Definition}
+Recall the definition of a context-free grammar, as specified by John C. Martin
+\cite{Martin}:
+\begin{definition}[Context-Free Grammar] \label{def:CFG}
+    A Context Free Grammar (CFG) is a 4-tuple $G = \langle V, \Sigma, S, 
+    P\rangle$, where $V$ and $\,\Sigma$ are finite sets, $S \in V$, and $P$ is a
+    finite set of formulas of the form $A \rightarrow \alpha$, where $A \in V$
+    and $\alpha \in (V \cup \Sigma)^\ast$.
+
+    Elements of $\Sigma$ are terminal symbols, elements of $V$ are non-terminal
+    symbols, $S$ is the start symbol, and elements of $P$ are production rules.
+\end{definition}
+By extending Definition \ref{def:CFG}, we can achieve the formal definition of 
+an attribute grammar originally specified by Knuth \cite{KnuthGrammars}, but 
+presented in a similar tuple style, as defined by Waite and Goos 
+\cite{WaiteBook}:
+\begin{definition}[Attribute Grammar] \label{def:AG}
+    An Attribute Grammar is an 4-tuple $AG = \langle G, A, R, B\rangle$, where
+    $G$ is a Context-Free Grammar, $A$ is a finite set of attributes, $R$ 
+    is a finite set of semantic rules defined using the attributes in $A$ and
+    $B$ is a set of predicates.
+\end{definition}
+The set $A$ can be deconstructed into two disjoint sets $S$ and $I$. These
+represent two types of attributes, \textit{synthesised attributes} and 
+\textit{inherited attributes} respectively. As defined by Louden, an attribute
+is \textit{synthesised} if \textit{``all of its dependencies point from child 
+    to parent in the parse tree"} \cite[\S6.2.2, p.~277]{Louden}. An attribute
+is \textit{inherited} if all of its dependencies point either from 
+parent to child in the parse tree, or sibling to sibling 
+\cite[\S6.2.2, p.~278]{Louden}. Each grammar symbol $X \in V \cup \Sigma$ is 
+associated with a set of synthesised attributes and a set of inherited 
+attributes. Each production rule $p \in P$ is associated with a set of 
+semantic rules.
+
+\subsection{Example: Assigning Types to Declared Variables}
+Louden provides a good simple example of an attribute grammar for variable
+declarations in a C-like language \cite{Louden}, shown in Figure 
+\ref{fig:AttributeGrammar}. Some symbols have been renamed from the original
+example to improve readability, these are $Type$ to $DataType$, and $dtype$ to
+$type$.
 
 \begin{figure}
     \begin{minipage}[b]{.5\textwidth}
         \begin{align*}
-            Assign &\rightarrow Var \; "=" \; Expr \\
-            Expr &\rightarrow Var_2 "+" Var_3 \\
-            Expr &\rightarrow Var \\
-            Var &\rightarrow A \, | \, B \, | \, C
+            Decl &\rightarrow DataType \; VarList \\
+            DataType &\rightarrow int \\
+            DataType &\rightarrow float \\
+            VarList_1 &\rightarrow id \, "," \, VarList_2\\
+            VarList &\rightarrow id 
         \end{align*}
         \subcaption{Production Rules}
         \label{fig:ProductionRules}
     \end{minipage}
     \begin{minipage}[b]{.5\textwidth}
         \begin{align*}
-                ExpectedType(Expr) &= ActualType(Var) \\
-                ActualType(Expr) &= if ActualType(Var_2 = Int) \&\& \\
-                ActualType(Expr) &= ActualType(Var) \\
-                ActualType(Var) &= lookupType(Var)
+            VarList.type &= DataType.type \\
+            DataType.type &= integer \\
+            DataType.type &= real \\
+            id.type &= VarList_{1}.type \\
+            VarList_{2}.type &= VarList_{1}.type \\
+            id.type &= VarList.type
         \end{align*}
         \subcaption{Attribute Definitions}
         \label{fig:AttributeDefinitions}
@@ -367,6 +421,63 @@ assignment statement in a simple language, shown in Figure
     \caption{An attribute grammar for an assignment statement}
     \label{fig:AttributeGrammar}
 \end{figure}
+
+Suppose we were to parse the statement {\ttfamily int a, b} using this grammar. 
+In order to do this, we would need to compute the dependency graph associated 
+with each set of semantic rules mapped to each grammar production. 
+Using these graphs, we can construct the dependency graph for our input string 
+by uniting the associated dependency graph for each rule used in the derivation 
+of our parse tree \cite{Louden}. This dependency graph will tell us what order 
+we should annotate the parse tree nodes . The resulting annotated parse tree 
+is shown in Figure \ref{fig:AGAnnotatedParseTree}, with the dependency graph 
+overlayed with dashed lines.
+
+\begin{figure}
+    \Tree [.Decl\\(type=integer) [.DataType\\(type=integer) int ] 
+    [.VarList\\(type=integer) id(a)\\(type=integer) "," 
+    [.VarList\\(type=integer) id(b)\\(type=integer) ] ] 
+    ]
+    \caption{The annotated parse tree for the expression {\ttfamily int a, b},
+        with its associated dependency graph}
+    \label{fig:AGAnnotatedParseTree}
+\end{figure}
+
+
+\subsection{Implementation \& Critique}
+By encoding our type rules as a series of attributes and semantic rules, we can
+perform our type checking by scanning up and down the tree and applying the
+relevant rules to each node. This provides an implementation for the type
+checking process described in Section \ref{sec:Chap1TypeChecking}. The problem 
+of generating a type checker reduces to generating an attribute grammar $AG$, 
+given some Context-Free Grammar $G$ representing the source language 
+specification, with each type rule being encoded in the form of semantic rules 
+tied to each production. 
+
+If both synthesised and inherited attributes are utilised in an attribute
+grammar, then it must be checked for circularity. This is to make sure
+that all defined semantic rules will evaluate to a value, and not endlessly
+loop forever. An algorithm for this was devised by Knuth \cite{KnuthGrammars}
+\cite{KnuthCorrection}, and later improved upon by Jazayeri, Ogden and Rounds.
+Unfortunately the time complexity of the algorithm was determined to be 
+$O(2^{dn})$, where $d$ is a specific constant such that $d>0$, and $n$ is the 
+description size of the grammar \cite{OgdenAGComplexity}. To make matters even 
+worse, Jazayeri et al. determined that the minimum number of steps required for 
+any circularity algorithm is $O(2^{\sfrac{cn}{\log n}})$, where $c$ is some 
+constant such that $c>0$. The difficulty of checking for circularity is thus 
+a drawback for using attribute grammars to specify static semantics.
+
+Another drawback is linked to the formal definition of the Attribute Grammar
+itself. It is known that the formal version of an attribute grammar is 
+considered difficult to implement into compiler pipelines. In Waite's 
+paper \textit{Use of Attribute Grammars in Compiler Construction},he states 
+that \textit{``Experience has shown that [the 4-tuple] definition of 
+    an attribute grammar must be augmented if it is to be of practical use in 
+    compiler construction"} \cite{WaitePaper}. The paper goes on to explain 
+the complexities of accessing attribute information beyond the local parent and 
+child relationships established in the semantic rules associated with each
+production. With the current attribute grammar definition, the only way to pass 
+this information from two distant nodes in the parse tree would be to pipe the 
+information through the tree, increasing the complexity of the grammar greatly.
 
 \section{Applying Category Theory To Type Checking}
 \label{sec:CategoryTheory}
@@ -428,10 +539,12 @@ chain. Consider the following type checking code:
 
 \textit{Working on a do-notation example demonstrating the Err data structure...}
 
-\subsection{Foldables}
+\subsection{Foldables \& Catamorphisms}
 
+\cite{PierceCategory}
 \cite{MilewskiCTFP}
 \cite{HuttonHaskell}
+\cite{Catamorphisms}
 
 \section{Advanced Type Rules \& Context}
 With attribute grammars annotating the program abstract syntax tree with type
@@ -529,16 +642,6 @@ The sucess of this project is measured by how many different type rules are
 expressible in the type system language, and how well the generator is able to
 implement those rules in the form of a type checker.
 
-\section{Software Component Analysis}
-The end product we are creating requires us to take into account many different
-software components. To better understand these components and how they depend
-on each other, we can construct an component diagram to help us visualise
-the relationships. The diagram is shown in Figure \ref{fig:SoftwareComponents}.
-The components this project focuses on are highlighted in red. This chapter
-will focus on the development of the Type Language Specification and the
-Type Rule Lexer/Parser generated from it, while Chapter 5 will focus on the
-Type Checker Generator.
-
 \begin{figure}[!ht]
     \begin{tikzpicture}
         \node (SLSC) [label] {\footnotesize Source Language Source Code};
@@ -548,7 +651,7 @@ Type Checker Generator.
         \node (TCG) [archbox, above of=SLTC, yshift=0.75cm, color=red] {\footnotesize Type Checker Generator};
         \node (BNFC) [archbox, above of=SLL/P, yshift=2.25cm] {\footnotesize BNFC};
         \node (TCGL/P) [archbox, above of=TCG, yshift=0.5cm, xshift=1cm, color=red] {\footnotesize Type Rule Lexer/Parser};
-        \node (CBE) [dashedarchbox, right of=SLTC, xshift=3cm] {\footnotesize Compiler Backend};
+        \node (CBE) [dashedarchbox, right of=SLTC, xshift=3cm] {\footnotesize Compiler Back-End};
         \node (TR) [label, above of=TCGL/P, yshift=0.5cm] {\footnotesize Type Rule Specification};
         \node (SLS) [label, above of=BNFC, yshift=0.5cm] {\footnotesize Source Language Specification};
 
@@ -569,6 +672,17 @@ Type Checker Generator.
         the type system language}
     \label{fig:SoftwareComponents}
 \end{figure}
+
+\section{Software Component Analysis}
+The end product we are creating requires us to take into account many different
+software components. To better understand these components and how they depend
+on each other, we can construct an component diagram to help us visualise
+the relationships. The diagram is shown in Figure \ref{fig:SoftwareComponents}.
+The components this project focuses on are highlighted in red. This chapter
+will focus on the development of the Type Language Specification and the
+Type Rule Lexer/Parser generated from it, while Chapter 5 will focus on the
+Type Checker Generator.
+
 
 \chapter{Type System Language}
 

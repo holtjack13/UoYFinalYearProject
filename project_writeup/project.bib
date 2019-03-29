@@ -24,11 +24,20 @@
 }
 
 @book(DragonBook,
-    author    = {Aho, Alfred V. and Lam, Monica S. and Sethi, Ravi and Ullman, Jeffery D.},
+    author    = {Aho, Alfred V. and Lam, Monica S. and Sethi, Ravi and 
+    Ullman, Jeffery D.},
     title     = {Compilers: Principles, Techniques and Tools},
     year      = {2006},
     edition   = {2},
     publisher = {Pearson},
+}
+
+@book(Martin,
+    author    = {Martin, John C.},
+    title     = {Introduction to Languages and the Theory of Computation},
+    year      = {2011},
+    edition   = {4},
+    publisher = {McGraw-Hill},
 }
 
 @book{SimonPeytonJones,
@@ -62,15 +71,28 @@
     edition = {2},
 }
 
-@incollection{CSHandbook,
-   author = {Cardelli, Luca},
-   title = {Type Systems},
-   booktitle = {The Computer Science Handbook},
-   year = {2004},
-   editor = {Tucker, Allen B.},
-   edition = {2nd},
-   chapter = {97},
+@book{WaiteBook,
+    author = {Waite, William M. and Goos, Gerhard},
+    title = {Compiler Construction},
+    year = {1984},
+    publisher = {Springer-Verlag New York}
 }
+
+@book{Louden,
+    author = {Louden, Kenneth C.},
+    title = {Compiler Construction: Principles and Practice},
+    year = {1997},
+    publisher = {PWS Publishing Company}
+}
+
+@book{PierceCategory,
+    author = {Pierce, Benjamin C.},
+    title = {Basic Category Theory for Computer Scientists},
+    year = {1991},
+    publisher = {MIT Press},
+}
+
+
 % --------------------------------- Technical Reports ----------------------------------- %
 @techreport{Typical,
     author = {Grimm, Robert and Harris, Laune and Le, Anh},
@@ -98,6 +120,38 @@
     pages        = {127-145}
 }
 
+@article{KnuthCorrection,
+    author = {Knuth, Donald E.},
+    title = {Semantics of Context-Free Languages: Correction},
+    year = {1971},
+    journaltitle = {Mathematical Systems Theory},
+    volume = {5},
+    number = {2},
+    pages = {95-96}
+}
+
+@article{OgdenAGComplexity,
+    author = {Jazayeri, Mehdi and Ogden, William F. and Rounds, William C.},
+    title = {The Intrinsically Exponential Complexity of the Circularity Problem for Attribute Grammars},
+    journaltitle = {Communications of the ACM},
+    volume = {18},
+    number = {12},
+    month = {December},
+    year = {1975},
+    pages = {697-706},
+    publisher = {ACM}
+}
+
+@inproceedings{WaitePaper,
+    author = {Waite, William M.},
+    title = {Use of Attribute Grammars in Compiler Construction},
+    booktitle = {Attribute Grammars and their Applications},
+    year = {1990},
+    publisher = {Springer Berlin Heidelberg},
+    pages = {255-265},
+    editor = {Deransart, P. and Jourdan M.}
+}
+
 % These might go in related works, but aren't as relevant and useful as I thought
 @inbook{JohnHannan,
     author    = {Hannan, John},
@@ -121,6 +175,17 @@
     pages = {165-190}
 }
 
+@inproceedings{Catamorphisms,
+    author = {Meijer, Erik and Fokkinga, Maarten and Paterson, Ross},
+    editor = {Hughes, John},
+    title = {Functional Programming with Bananas, Lenses, Envelopes and Barbed
+        Wire},
+    booktitle = {Functional Programming Languages and Computer Architecture},
+    year = {1991},
+    publisher = {Springer Berlin Heidelberg},
+    pages = {124-144}
+}
+
 @article{NeilJones,
     author       = {Jones, Neil D.},
     title        = {{Static Semantics, Types,} and {Binding Time Analysis}},
@@ -131,6 +196,30 @@
     pages        = {95-118}
 }
 
+@incollection{CSHandbook,
+   author = {Cardelli, Luca},
+   title = {Type Systems},
+   booktitle = {The Computer Science Handbook},
+   year = {2004},
+   editor = {Tucker, Allen B.},
+   edition = {2},
+   chapter = {97},
+}
+
+@article{Paakki,
+    author = {Paakki, Jukka},
+    title = {Attribute Grammars Paradigms - A High Level Methodology in Language
+    Implementation},
+    journaltitle = {ACM Computing Surveys},
+    volume = {27},
+    number = {2},
+    month = {June},
+    year = {1995},
+    pages = {196-255},
+    publisher = {ACM}
+}
+
+}
 % ----------------------------------------- Websites --------------------------------
 @online{BNFC,
     author = {Gothenburg Centre for Language Technology},
