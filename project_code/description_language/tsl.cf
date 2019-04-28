@@ -1,0 +1,28 @@
+-- Specification
+Spec. Specification ::= "TypeMap:" [TypeMapping] [TypeRule] ;
+
+-- Type Map Syntax
+TMap. TypeMapping ::= String "->" TSLType ;
+separator TypeMapping "," ;
+
+-- Rule Syntax
+RuleSC. TypeRule ::= "Rule:" Ident "{" "Ants:" [Judgement] "Conds:" String 
+                     "Csqnt:" Judgement "}" ;
+RuleNoSC. TypeRule ::= "Rule:" Ident "{" "Ants:" [Judgement] "Csqnt:" Judgement "}" ;
+separator TypeRule ";" ;
+
+-- Judgement Syntax
+Jmnt. Judgement ::= String ":" TSLType ;
+separator Judgement "," ;
+
+-- Type Syntax
+TInt. TSLType ::= "Int" ;
+TLong. TSLType ::= "Long" ;
+TFloat. TSLType ::= "Float" ;
+TDouble. TSLType ::= "Double" ;
+TChar. TSLType ::= "Char" ;
+TString. TSLType ::= "String" ;
+TBool. TSLType ::= "Bool" ;
+TStm. TSLType ::= "Stm" ;
+
+separator TSLType "," ;
