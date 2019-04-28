@@ -1,0 +1,4 @@
+RuleName:
+    {J_1, ... J_n}
+    [Side-Conditions]
+    C

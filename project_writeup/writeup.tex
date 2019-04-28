@@ -26,6 +26,8 @@
 
 \usepackage{subcaption} % Used for multi-figures
 
+\usepackage{amsthm}
+
 % Nice code font
 \usepackage[T1]{fontenc}
 \usepackage{sourcecodepro}
@@ -33,18 +35,19 @@
 % Define theorem environment
 \newtheorem{definition}{Definition}[section]
 
+\newtheorem*{hypothesis}{Hypothesis}
+\newtheorem*{researchquestion}{Research Question}
+
 % Bibliography file
 \addbibresource{project.bib}
 
 % Front Matter:
 \title{Generation of Type Checking Code}
 \author{Jack Holt}
-\date{27th March 2019}
+\date{25th April 2019}
 \supervisor{Jeremy L. Jacob}
 \BEng % Degree Type
 
-\dedication{To Mr Rowley, who revealed the incredible depth and power of
-    mathematics to my unsuspecting mind for the first time.}
 \acknowledgements{I would like to thank my supervisor, Jeremy Jacob, for his
     continued assistance and informative feedback over the course of this
     project. I would also like to thank my family for their support when I've
@@ -75,8 +78,31 @@ text width=0.25*\columnwidth, minimum height=1cm]
 \chapter{Introduction}
 
 \section{Project Outline}
+This project is an investigation into the feasibility of type checker generation,
+through the attempted construction of a type system description language, and a
+generic type checker generator. The generator, when given a language specification 
+and a set of type rules written in the type system language, will produce a 
+type checker enforcing the described type system. Several challenges were faced 
+when building the software, with the hardest issues to solve relating to the 
+difficulty of keeping the type system language generic.
 
-% Outline of Hypothesis and Research Question
+
+\section{Report Structure}
+This report is structured into chapters as follows:
+\begin{enumerate}
+    \item Background: A section explaining the required pre-requisite topics
+        before more complex ideas and methods are introduced
+    \item Literature Review: A section exploring methods of type checking,
+        functional programming and its suitability to type checker generation, 
+        and advanced type rules
+    \item Problem Analysis: 
+    \item Solution Design:
+    \item Implementation: A section discussing the software implementation of
+        the language and generator
+    \item Results \& Evaluation: A discussion of the results and the success
+        of the project
+\end{enumerate}
+
 \chapter{Background}
 
 \section{The Role of Types in Programming Languages}
@@ -354,6 +380,7 @@ abstract syntax tree is the designated data structure which is carried
 through many of the compilation phases.
 
 \subsection{Formal Definition}
+\label{sec:FormalDefinition}
 Recall the definition of a context-free grammar, as specified by John C. Martin
 \cite{Martin}:
 \begin{definition}[Context-Free Grammar] \label{def:CFG}
@@ -418,7 +445,7 @@ $type$.
         \subcaption{Attribute Definitions}
         \label{fig:AttributeDefinitions}
     \end{minipage}
-    \caption{An attribute grammar for an assignment statement}
+    \caption{An attribute grammar for variable declarations}
     \label{fig:AttributeGrammar}
 \end{figure}
 
@@ -442,8 +469,8 @@ overlayed with dashed lines.
     \label{fig:AGAnnotatedParseTree}
 \end{figure}
 
-
 \subsection{Implementation \& Critique}
+\label{sec:ImplAndCritique}
 By encoding our type rules as a series of attributes and semantic rules, we can
 perform our type checking by scanning up and down the tree and applying the
 relevant rules to each node. This provides an implementation for the type
@@ -459,11 +486,11 @@ that all defined semantic rules will evaluate to a value, and not endlessly
 loop forever. An algorithm for this was devised by Knuth \cite{KnuthGrammars}
 \cite{KnuthCorrection}, and later improved upon by Jazayeri, Ogden and Rounds.
 Unfortunately the time complexity of the algorithm was determined to be 
-$O(2^{dn})$, where $d$ is a specific constant such that $d>0$, and $n$ is the 
+$O(2^{dn})$, where $d$ is a positive constant, and $n$ is the 
 description size of the grammar \cite{OgdenAGComplexity}. To make matters even 
 worse, Jazayeri et al. determined that the minimum number of steps required for 
-any circularity algorithm is $O(2^{\sfrac{cn}{\log n}})$, where $c$ is some 
-constant such that $c>0$. The difficulty of checking for circularity is thus 
+any circularity algorithm is $O(2^{\sfrac{cn}{\log n}})$, where $c$ is a 
+positive constant. The difficulty of checking for circularity is thus 
 a drawback for using attribute grammars to specify static semantics.
 
 Another drawback is linked to the formal definition of the Attribute Grammar
@@ -539,7 +566,7 @@ chain. Consider the following type checking code:
 
 \textit{Working on a do-notation example demonstrating the Err data structure...}
 
-\subsection{Foldables \& Catamorphisms}
+\subsection{Catamorphisms}
 
 \cite{PierceCategory}
 \cite{MilewskiCTFP}
@@ -620,27 +647,80 @@ matches the variable we are checking. Looking up a variable would be considered
 a side-condition in a type rules, and it seems that any rules which have
 side-conditions will be harder to generate.
 
-Here are some examples of rules with different side-conditions, as documented
-by Pierce \cite{PierceTAPL}:
-
-\begin{displaymath}
-\prftree[l, r]{[if $f:(T_1, \dots, T_n) \rightarrow T$ in $\Gamma$]}{FuncCallT}{\Gamma \vdash a_1:T_1}{\dots}{\Gamma \vdash a_n:T_n}{\Gamma \vdash f(a_1, \dots, a_n):T}
-\end{displaymath}
-\begin{displaymath}
-\prftree[l, r]{[if Pointer T]}{LocationT}{\Gamma \vdash l:Pointer \, T}
-\end{displaymath}
-
-\textit{This section will be fleshed out to include type rules for more complex
-    types such as pairs, product types, records, sum types, lists,
-    pointers, etc...}
-
-
-
 \chapter{Problem Analysis}
-\section{Project Requirements}
-The sucess of this project is measured by how many different type rules are
-expressible in the type system language, and how well the generator is able to
-implement those rules in the form of a type checker.
+
+\section{Focusing the Project}
+In order to give this project focus, a hypothesis and research question need to
+be formulated, along with expected observations. This allows the 
+success of the project to be measured by comparing the initial predictions with 
+the results, and discussing the implications. Using the project brief and the
+knowledge gathered from the literature review, the following hypothesis has been
+formulated:
+\begin{hypothesis}
+    A static semantics for a given source language is much harder to generate
+    than a lexer or a parser, and will require more complex generation methods.
+\end{hypothesis}
+The reasoning behind this hypothesis is based on the conclusions reached in
+Section \ref{sec:ImplAndCritique} regarding the complexities of implementing 
+attribute grammars, as well as the fact that attribute grammars are 
+themselves context-free grammars with added complexity, as shown in Definition 
+\ref{def:AG} in Section \ref{sec:FormalDefinition}.
+To help define a scope of investigation for this hypothesis, a research question 
+is derived from it. By combining the research question with the constraints of the
+project brief, we can clearly establish the project's scope and minimise any 
+ambiguity regarding the aims of the project and what we are investigating.
+\begin{researchquestion}
+    Is it possible to construct a generic type checker generator, which, when 
+    given a source language specification and a set of type rules, will produce 
+    a type checker for the source language?
+\end{researchquestion}
+
+
+\chapter{Solution Design}
+
+\section{Requirements}
+\label{sec:Requirements}
+As declared by the brief, the type system language and generator have the
+following requirements:
+\begin{enumerate}
+    \item The type checker generator should be compatible with source languages
+        specified for use with the BNFC tool, in the form of a {\ttfamily .cf}
+        file.
+    \item A type checker should be able to be generated for a simple procedural 
+        language containing various operators and a procedure mechanism.
+    \item If time permits, additional support should be added for type checking
+        more advanced language features such as fixed arrays, records and 
+        pointers.
+    \item The type system description language needs to be readable, whilst
+        also maintaining expressibility.
+    \item The type system description language needs to be generic and not
+        specific to a particular source language. This is required to keep
+        the generator useful and applicable to a large number of source languages.
+\end{enumerate}
+
+\section{Initial Assumptions}
+Before we can begin designing the language or the generator, we must first state 
+some initial assumptions being made about the state of the inputs, and the 
+environment in which the type checker generation will occur. We will assume that:
+\begin{itemize}
+    \item The source language specification is a Labelled BNF Grammar, stored 
+        in a {\ttfamily .cf} file, within the same directory as the type
+        checker generator. This is to satisfy the first requirement.
+    \item The BNFC tool has successfully generated a working lexer/parser unit
+        for the input source language, with the modules generated from that
+        process available in the current directory. This is to provide the
+        generator with a predictable set of data structures and parser functions 
+        to work with.
+\end{itemize}
+
+\section{Relating Source Languages to the Generation Pipeline}
+In the previous sections, we have discussed methods of type checking and where
+the type checker sits in the source language compiler pipeline. To better 
+understand where the generator sits in relation to this pipeline, a diagram 
+relating the two is shown in Figure \ref{fig:SoftwareComponents}. The parts of 
+the diagram highlighted in red are the software components that will be 
+constructed during the project. The type checker generation pipeline runs 
+orthogonally to the type checker pipeline. 
 
 \begin{figure}[!ht]
     \begin{tikzpicture}
@@ -668,79 +748,138 @@ implement those rules in the form of a type checker.
         \draw [arrow] (SLS) .. controls +(up:4cm) and +(right:12cm) .. (TCG);
     \end{tikzpicture}
 
-    \caption{A diagram relating the various components of the source language with
-        the type system language}
+    \caption{A diagram relating the various components of the source language 
+        compiler pipeline with the type checker generation pipeline}
     \label{fig:SoftwareComponents}
 \end{figure}
 
-\section{Software Component Analysis}
-The end product we are creating requires us to take into account many different
-software components. To better understand these components and how they depend
-on each other, we can construct an component diagram to help us visualise
-the relationships. The diagram is shown in Figure \ref{fig:SoftwareComponents}.
-The components this project focuses on are highlighted in red. This chapter
-will focus on the development of the Type Language Specification and the
-Type Rule Lexer/Parser generated from it, while Chapter 5 will focus on the
-Type Checker Generator.
+\section{Language Features}
 
+\subsection{Maximising Language Readability}
+To keep the language readable and satisfying requirement 4, it should relate to 
+the type rules it is modelling in the most direct way possible. Therefore, 
+basing the syntax of the description language on the mathematical notation used 
+to describe type rules seems like a good place to start.
 
-\chapter{Type System Language}
-
-\section{Initial Language Design}
-When designing the type system language, we first considered what we might
-want the language to look like. The initial idea was to create a language which
-mirrored the mathematical notation for describing type rules we have presented
-throughout the project. This resulted in an initial plaintext language
-demonstrated in Figure \ref{fig:InitialTypeLanguage}. This language seemed to
-be able to express a large number of type rules, but upon further investigation
-a number of flaws were exposed. The main issue with this initial draft was that
-it created a direct dependency on the source language we were describing type
-rules for. The consequences of this would result in a new type system language
-needing to be constructed before we described a new source language. This would
-require a large amount of work from the user, and would also expose the type
-system language implementation, requiring the user to understand more than
-should be assumed.
-
-\begin{figure}
-\lstset{basicstyle=\footnotesize\ttfamily, frame=single,
-    language=,}
-\lstinputlisting{code-examples/TypeSpecification1.txt}
-\caption{Type rules for variables and addition written in the initial type
-    description language}
-\label{fig:InitialTypeLanguage}
+\begin{figure}[!ht]
+    \begin{minipage}[b]{.55\textwidth}
+        \begin{displaymath}
+    \prftree[l,r]{\scriptsize [Side-Conditions]}{\scriptsize RuleName}{
+        J_1 \dots J_n}{C}
+        \end{displaymath}
+        \subcaption{Type rule}
+        \label{fig:TypicalTypeRule}
+    \end{minipage}
+    \begin{minipage}[b]{.45\textwidth}
+    \lstset{basicstyle=\footnotesize\ttfamily, frame=single,
+        language=,}
+    \lstinputlisting{code-examples/rule_syntax.txt}
+        \subcaption{Syntax inspired by type rule notation}
+        \label{fig:ProposedSyntax}
+    \end{minipage}
+    \caption{The mathematical notation used for describing type rules, contrasted
+        with a proposed syntax for type rules in the description language}
+    \label{fig:RuleLanguageContrast}
 \end{figure}
 
-\section{Eliminating Source Language Dependency}
-After much thinking and consideration, a way of disconnecting the dependency
-between the source language and type system language was found. For this idea
-to work, we must assume that the user has created a BNFC specification for their
-source language and has successfully used the BNFC tool to produce the output
-files described in Section \ref{sec:BNFC}, which is reasonable. The solution
-involves encoding every instance of source language used in the type rule
-specification as strings, and using the parsing functions produced by BNFC to
-acquire the AST for those snippets of source language. These ASTs can then be
-merged with the AST produced by the Type System Language to provide the full
-type rule descriptions, without depending on the source language itself. The
-parsing functions will be called in the Type Checker Generator. Examples in the
-revised language are shown in Figure \ref{fig:RevisedTypeLanguage}.
+\subsection{Maintaining Generality}
+One of the caveats we need to consider is how to keep the language as general as
+possible, in order to satisfy requirement 5. Suppose we had the following type rule expressed in our description
+language:
+\lstinputlisting{code-examples/specific_rule.txt}
+With this syntax, an implicit assumption is made, that is, the description
+language has a full understanding of how to syntactically form any expression, 
+statement or declaration in the source language. With the example source language,
+addition is written using an infix style. This may not be the case with all 
+languages however. If we wanted to create a type checker for a LISP-like language,
+addition would be expressed in a prefix style as {\ttfamily (+ a b)}, with the
+type rule now being:
+\lstinputlisting{code-examples/lisp_like_rule.txt}
+We therefore cannot realistically maintain this assumption as it would require
+our language to have a working knowledge of how to form the language constructs
+of every possible source language that could feasibly be passed to the generator 
+as an input. Practically speaking, this is impossible. If we wanted to maintain
+this assumption, the only way we could do so would be modify the specification
+for the lexer and parser of the description language every time we worked with
+a new source language. Doing this however is not only inconvenient for the user,
+it also results in a loss in generality of the language.
 
-\begin{figure}
-\lstset{basicstyle=\footnotesize\ttfamily, frame=single,
-    language=,}
-\lstinputlisting{code-examples/TypeSpecification2.txt}
-\caption{Type rules for variables and addition written in the revised type
-    description language without the source language dependency}
-\label{fig:RevisedTypeLanguage}
-\end{figure}
+One way to remove the dependency on the source language from the description
+language is to encode the various language constructs of the source language as 
+strings when describing them. These strings can be sent to the source language 
+parser by the generator to produce the corresponding abstract syntax trees, 
+without the generator having to worry about the syntactic forms of the various 
+language constructs in the source language. This results in a rule syntax 
+resembling the following:
+\lstinputlisting{code-examples/string_rule.txt}
+Unfortunately there are pitfalls with this syntax also. The problem here is that 
+in order to successfully describe the type rule for a language construct, the
+strings being used to express the components of the rule must be 
+successfully parsable. If a string were to fail the parsing stage, the type 
+rule cannot be generated. As there is no way of expressing a general term of
+the source language in the source language itself, this syntax would only
+be able to create type rules for specific values e.g.
+{\ttfamily 1+2}. This is not expressive and can't cover enough scope of the 
+source language to be useful.
+
+The only feasible way to maintain generality and construct a description
+language that is not specific to one specific source language is with the
+help of the user. The string idea can still be used, but instead of encoding 
+the syntax of the source language, the user provides the BNF label used in their
+language specification for the construct they are describing, along with the
+construct parameters. For example, if the add operation {\ttfamily a+b} has
+the Labelled BNF production
+\lstinputlisting{code-examples/lbnf_add.txt}
+then the type rule for this expression would be represented as:
+\lstinputlisting{code-examples/AS_rule.txt}
+where {\ttfamily "a"} and {\ttfamily "b"} in the type rule correspond to the 
+{\ttfamily Exp1} and {\ttfamily Exp} terms respectively in the Labelled BNF 
+production.
+
+\subsection{Supporting Various Types}
+To meet requirement 2, the description language needs to be able to support the
+fundamental types of a simple procedural language. The language should also be
+designed in such a way that it is easy to extend to support new types. To achieve
+this support, the language should have its own set of types independent of the
+source language, rather than trying to reason about the source language types
+using the types themselves. This is because if we are trying to reason generally
+about types with varying size, the source language type annotations may not
+be sufficient to achieve this. For example, a record type could have up to $n$
+members stored within it, but the source language record syntax may require the
+user to explicitly enumerate the members of the record, fixing the size to a 
+specific value. This would result in the type rule only applying to records of
+the specified size, rather than all records.
+
+The types required to satisfy requirement 2 can be expressed using the following
+description language expressions:
+\begin{itemize}
+    \item {\ttfamily Int}: 32 bit integer values
+    \item {\ttfamily Long}: 64 bit integer values
+    \item {\ttfamily Float}: 32 bit floating point values
+    \item {\ttfamily Double}: 64 bit floating point values
+    \item {\ttfamily Char}: Single characters encoded as 8 bit values
+    \item {\ttfamily String}: Sequences of characters
+    \item {\ttfamily Bool}: Boolean values
+    \item {\ttfamily Stm}: Statement type (synonymous with the {\ttfamily Unit}
+        type in Haskell)
+\end{itemize}
+Requirement 3 can be satisfied with the addition of the following expressions
+the description language:
+\begin{itemize}
+    \item {\ttfamily FArray[T, n]}: Fixed size array type where {\ttfamily T} is 
+        the type of values contained in the array, and {\ttfamily n} is the 
+        array length.
+    \item {\ttfamily VArray[T]}: Variable size array type where {\ttfamily T} is
+        the type of values contained in the array.
+    \item {\ttfamily Pointer[T]}: Pointer to value of type T.
+\end{itemize}
 
 
-\section{Adding a Context Description System}
+\subsection{Adding a Context Description System}
 
-\section{Adding Support for Different Side-Conditions}
+\subsection{Adding Support for Different Side-Conditions}
 
-\chapter{Type Checker Generation}
-
-\section{Generating Basic Type Checkers}
+\chapter{Implementation}
 
 \chapter{Results and Evaluation}
 
