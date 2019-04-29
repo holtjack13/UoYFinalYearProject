@@ -22,10 +22,12 @@ buildTypeCheckerFile :: IO ()
 buildTypeCheckerFile = do
     specName <- getSpecFileName
     moduleImports <- generateModuleImports
+    helperFunctions <- generateHelperFunctions
     mainFunction <- generateMain
     parseFunction <- generateSourceLangParseFunction
     code <- generateTypeCheckingCode
     writeFile (specName ++ "TypeChecker.hs") (moduleImports ++ 
+                                              helperFunctions ++
                                               mainFunction ++
                                               parseFunction ++
                                               code)
@@ -63,53 +65,75 @@ generateModuleImports = do
                         "\n"
     return moduleImports
 
+generateHelperFunctions :: IO String
+generateHelperFunctions = do
+    specName <- getSpecFileName
+    let helperFunctions = "safeAnd :: Err Bool -> Err Bool -> Err Bool\n" ++
+                          "safeAnd (Ok a) (Ok b) = Ok (a && b)\n" ++
+                          "safeAnd (Bad s) (Ok b) = Bad s\n" ++
+                          "safeAnd (Ok a) (Bad s) = Bad s\n" ++
+                          "safeAnd (Bad s) (Bad t) = Bad (s ++ \"\\n\" ++ t)" ++
+                          "\n\n"
+    return helperFunctions
+
+
 generateMain :: IO String
 generateMain = do
     specName <- getSpecFileName
-    let mainFunction = "main :: IO ()\n" ++
-                       "main = do\n" ++
-                        "   cmdLineArgs <- getArgs\n" ++ 
-                        "   let srcFile = head cmdLineArgs\n" ++
+    let mainFunction = "parseAndCheckSrc :: FilePath -> IO (Err Bool)\n" ++
+                       "parseAndCheckSrc srcFile = do\n" ++
                         "   srcParseTree <- parseSourceFile srcFile\n" ++
                         "   case srcParseTree of\n" ++
-                        "       Ok tree -> check tree\n" ++
-                        "       Bad err -> putStrLn err\n" ++
-                        "   return ()\n"
+                        "       Ok tree -> return $ checkProg tree ()\n" ++
+                        "       Bad err -> return $ Bad err \n" ++
                         "\n"
     return mainFunction
 
 generateSourceLangParseFunction :: IO String
 generateSourceLangParseFunction = do
     specName <- getSpecFileName
-    let parseFunction = "parseSourceFile :: String -> IO (Err Specification)\n" ++
+    let parseFunction = "parseSourceFile :: String -> IO (Err Program)\n" ++
                         "parseSourceFile f = do\n" ++
                         "   sourceString <- readFile f\n" ++
                         "   return $ sourceLexAndParse sourceString\n" ++
                         "       where\n" ++
                         "           sourceLexAndParse = (pProgram . Par" ++
-                                                        specName ++ ")\n" ++
+                                    specName ++ ".myLexer)\n" ++
                         "\n"
     return parseFunction
 
 
 generateTypeCheckingCode :: IO String
 generateTypeCheckingCode = do
-    errSpec <- parseSpec "Test"
+    errSpec <- parseSpec "TypeRules"
     case errSpec of 
       Ok spec -> return $ evalSpec spec
       Bad err -> return err
 
 
-parseSpec :: String -> IO (Err Specification)
+parseSpec :: String -> IO (Err Spec)
 parseSpec specFile = do
     specString <- readFile specFile
     return $ specLexAndParse specString 
         where
-            specLexAndParse = (pSpecification . ParTsl.myLexer)
+            specLexAndParse = (pSpec . ParTsl.myLexer)
 
 
-evalSpec :: Specification -> String
-evalSpec (Spec ms rs) = mconcat $ map (evalRule ms) rs
+evalSpec :: Spec -> String
+evalSpec (SpecExpr ms p es) = mconcat $ [comment] ++ 
+                              [evalRule ms p] ++ ["\n"] ++
+                              map (evalRule ms) es ++ 
+                              [genCheckExpErr] ++ ["\n"]
+                                  where
+                                      comment = "-- Type Checking Functions\n"
+evalSpec (SpecExprStm ms p es ss) = mconcat $ [comment] ++ 
+                                    [evalRule ms p] ++ ["\n"] ++
+                                    map (evalRule ms) es ++ 
+                                    [genCheckExpErr] ++ ["\n"] ++
+                                    map (evalRule ms) ss ++ 
+                                    [genCheckStmErr] ++ ["\n"]
+                                  where
+                                      comment = "-- Type Checking Functions\n"
 
 
 evalRule :: TypeMap -> TypeRule -> String
@@ -119,7 +143,11 @@ evalRule ms (RuleSC name as sc c) = ""
 
 
 generateFunctionSignature :: TypeMap -> Judgement -> String
-generateFunctionSignature ms (Jmnt e t) = "check (" ++ e ++ ") " ++ 
+generateFunctionSignature ms (Jmnt e TProg) = "checkProg (" ++ e ++ ") " ++ 
+                                           expand TStm ms ++ " = "
+generateFunctionSignature ms (Jmnt e TStm) = "checkStm (" ++ e ++ ") " ++ 
+                                           expand TStm ms ++ " = "
+generateFunctionSignature ms (Jmnt e t) = "checkExp (" ++ e ++ ") " ++ 
                                            expand t ms ++ " = "
 
 
@@ -130,12 +158,18 @@ expand t (m@(TMap s t'):ms) = if t == t' then s else expand t ms
 
 
 generateFunctionBody :: TypeMap -> [Judgement] -> String
-generateFunctionBody ms [] = "True\n"
-generateFunctionBody ms js = mconcat ([(genFB ms j') ++ "&& " | j' <- init js] 
-                                            ++ [(genFB ms (last js)) ++ "\n"])
+generateFunctionBody ms [] = "Ok True\n"
+generateFunctionBody ms js = mconcat ([(genCheckTerm ms j') ++ "`safeAnd` " | j' <- init js] 
+                                            ++ [(genCheckTerm ms (last js)) ++ "\n"])
 
 
-genFB :: TypeMap -> Judgement -> String
-genFB ms (Jmnt e t) = "check " ++ e ++ " " ++ expand t ms ++ " "
+genCheckTerm :: TypeMap -> Judgement -> String
+genCheckTerm ms (Jmnt e TStm) = "checkStm " ++ e ++ " " ++ expand TStm ms ++ " "
+genCheckTerm ms (Jmnt e t) = "checkExp " ++ e ++ " " ++ expand t ms ++ " "
 
+genCheckExpErr :: String
+genCheckExpErr = "checkExp _ _ = Bad \"Error: Type error found in expression\"\n"
+
+genCheckStmErr :: String
+genCheckStmErr = "checkStm _ _ = Bad \"Error: Type error found in statement\"\n"
 

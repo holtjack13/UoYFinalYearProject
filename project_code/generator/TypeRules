@@ -1,0 +1,42 @@
+TypeMap:
+    "IntgT" -> Int,
+    "BoolT" -> Bool
+
+Program:
+    Rule: P {
+        Ants:
+            "s": Stm
+        Csqnt:
+            "Prog s": Prog
+    }
+
+Expressions:
+    Rule: Add {
+        Ants:
+            "a": Int,
+            "b": Int
+        Csqnt:
+            "Plus a b": Int
+    };
+    
+    Rule: EInt {
+        Ants:
+        Csqnt:
+            "Intg a": Int
+    }
+    
+Statements:
+    Rule: Print {
+        Ants:
+            "e": Int,
+        Csqnt:
+            "Prnt e": Stm
+    };
+
+    Rule: Seqn {
+        Ants:
+            "s1": Stm,
+            "s2": Stm
+        Csqnt:
+            "Seqn s1 s2": Stm
+    }

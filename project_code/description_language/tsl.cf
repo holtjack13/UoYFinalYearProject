@@ -1,5 +1,6 @@
 -- Specification
-Spec. Specification ::= "TypeMap:" [TypeMapping] [TypeRule] ;
+SpecExpr. Spec ::= "TypeMap:" [TypeMapping] "Program:" TypeRule "Expressions:" [TypeRule] ;
+SpecExprStm. Spec ::= "TypeMap:" [TypeMapping] "Program:" TypeRule "Expressions:" [TypeRule] "Statements:" [TypeRule] ;
 
 -- Type Map Syntax
 TMap. TypeMapping ::= String "->" TSLType ;
@@ -24,5 +25,6 @@ TChar. TSLType ::= "Char" ;
 TString. TSLType ::= "String" ;
 TBool. TSLType ::= "Bool" ;
 TStm. TSLType ::= "Stm" ;
+TProg. TSLType ::= "Prog" ;
 
 separator TSLType "," ;

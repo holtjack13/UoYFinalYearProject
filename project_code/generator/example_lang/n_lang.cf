@@ -1,15 +1,16 @@
 -- N Language
 
+Prog. Program ::= Stm ;
 
-Skip. Stm ::= "skip" ; 
-Prnt. Stm ::= "print" Exp ; 
-Assn. Stm ::= Ident ":=" Exp ; 
+Skip. Stm1 ::= "skip" ; 
+Prnt. Stm1 ::= "print" Exp ; 
+Assn. Stm1 ::= Ident ":=" Exp ; 
 Ifte. Stm ::= " if" Exp "then" Stm "else" Stm "end" ; 
 Iter. Stm ::= "while" Exp "do" Stm "end" ; 
 Blck. Stm ::= "{" [Dec] "|" [Proc] "|" Stm "}" ; 
-Call. Stm ::= Ident "{" [Exp] "|" [Ident] "}" ; 
-Seqn. Stm ::= [Stm] ; 
-separator nonempty Stm ";" ;
+Call. Stm1 ::= Ident "{" [Exp] "|" [Ident] "}" ; 
+Seqn. Stm ::= Stm ";" Stm1 ;
+coercions Stm 1 ;
 
 Dcl. Dec ::= Ident ":" Type ; 
 separator Dec ";" ;
