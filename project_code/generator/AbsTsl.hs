@@ -34,5 +34,6 @@ data TSLType
     | TBool
     | TStm
     | TProg
+    | TIdent
   deriving (Eq, Ord, Show, Read)
 

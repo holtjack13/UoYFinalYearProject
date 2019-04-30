@@ -1,0 +1,9 @@
+while true and false
+do
+    if 5 < 6
+    then
+        print 21
+    else
+        print 5 * 5
+    end
+end

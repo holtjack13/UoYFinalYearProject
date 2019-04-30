@@ -3,7 +3,7 @@ TypeMap:
     "BoolT" -> Bool
 
 Program:
-    Rule: P {
+    Rule: Top {
         Ants:
             "s": Stm
         Csqnt:
@@ -11,6 +11,22 @@ Program:
     }
 
 Expressions:
+    Rule: Equal {
+        Ants:
+            "a": Int,
+            "b": Int
+        Csqnt:
+            "Eql a b": Bool
+    };
+
+    Rule: LessThan {
+        Ants:
+            "a": Int,
+            "b": Int
+        Csqnt:
+            "Lsth a b": Bool
+    };
+
     Rule: Add {
         Ants:
             "a": Int,
@@ -18,19 +34,93 @@ Expressions:
         Csqnt:
             "Plus a b": Int
     };
+
+    Rule: Or {
+        Ants:
+            "a": Bool,
+            "b": Bool
+        Csqnt:
+            "Or a b": Bool
+    };
+
+    Rule: Mult {
+        Ants:
+            "a": Int,
+            "b": Int
+        Csqnt:
+            "Mult a b": Int
+    };
+
+    Rule: And {
+        Ants:
+            "a": Bool,
+            "b": Bool
+        Csqnt:
+            "And a b": Bool
+    };
     
-    Rule: EInt {
+    Rule: Negate {
+        Ants:
+            "a": Int,
+        Csqnt:
+            "Negt a": Int
+    };
+
+    Rule: Not {
+        Ants:
+            "a": Bool,
+        Csqnt:
+            "Not a": Bool
+    };
+
+    Rule: True {
+        Ants:
+        Csqnt:
+            "TruV": Bool
+    };
+
+    Rule: False {
+        Ants:
+        Csqnt:
+            "FlsV": Bool
+    };
+    
+    Rule: IntVal {
         Ants:
         Csqnt:
             "Intg a": Int
-    }
+    };
+
     
 Statements:
+    Rule: Skip {
+        Ants:
+        Csqnt:
+            "Skip": Stm
+    };
+    
     Rule: Print {
         Ants:
             "e": Int,
         Csqnt:
             "Prnt e": Stm
+    };
+
+    Rule: IfThenElse {
+        Ants:
+            "p": Bool,
+            "s": Stm,
+            "t": Stm
+        Csqnt:
+            "Ifte p s t": Stm
+    };
+
+    Rule: While {
+        Ants:
+            "p": Bool,
+            "s": Stm
+        Csqnt:
+            "Iter p s": Stm
     };
 
     Rule: Seqn {

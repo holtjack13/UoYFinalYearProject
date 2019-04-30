@@ -26,5 +26,6 @@ TString. TSLType ::= "String" ;
 TBool. TSLType ::= "Bool" ;
 TStm. TSLType ::= "Stm" ;
 TProg. TSLType ::= "Prog" ;
+TIdent. TSLType ::= "Identifier" ;
 
 separator TSLType "," ;
