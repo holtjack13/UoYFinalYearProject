@@ -73,15 +73,49 @@ text width=0.25*\columnwidth, minimum height=1cm]
 
 % Summary
 \begin{summary}
+
+    \section{Project Aims}
+    The aim of this project is to investigate the feasibility of type checker
+    generation, through the attempted construction of a type rule description
+    language, and a generic type checker generator.
+
+    \section{Motivation}
+    Lexing and parsing are solved problems in the computer science community,
+    with tools existing to generate lexers and parser from given input
+    specifications. Generating type checkers is a much harder problem, with 
+    current tools working with limited degrees of success. If a general type
+    checker generator can be constructed, completely working compiler front-ends
+    can be generated from just a few specifications. This would provide benefit
+    to language designers looking to test out language ideas quickly, without
+    having to construct a type checker themselves.
+
+    \section{Method}
+    A description language syntax is designed and constructed in the form of a 
+    Labelled BNF Grammar. The BNFC tool \cite{BNFC}, a lexer/parser generator,
+    is passed the description language specification as an input to produce a 
+    working lexer/parser unit for the description language. A type checker 
+    generator, which processes this description language, is written using the 
+    Haskell programming language. This generator processes the described
+    type rules, and outputs a type checker, also written in Haskell.
+
+    \section{Results}
+    The type checker generator was able to successfully output a type checker for
+    type rules without side conditions. Unfortunately, due to the short amount
+    of time available to carry out the project work, support for side conditions
+    and different contexts was not successfully implemented. The project
+    highlights the difficulties of keeping the type rule description language
+    general to as many input source languages as possible, and the consequences
+    of generality on informative type error diagnostics.
+
 \end{summary}
 
 \chapter{Introduction}
 
 \section{Project Outline}
-This project is an investigation into the feasibility of type checker generation,
-through the attempted construction of a type system description language, and a
+This project aims to investigate the feasibility of type checker generation,
+through the attempted construction of a type rule description language, and a
 generic type checker generator. The generator, when given a language specification 
-and a set of type rules written in the type system language, will produce a 
+and a set of type rules written in the type rule language, will produce a 
 type checker enforcing the described type system. Several challenges were faced 
 when building the software, with the hardest issues to solve relating to the 
 difficulty of keeping the type system language generic.
@@ -128,7 +162,7 @@ decreased run-time performance of programs. LISP, developed by John McCarthy in
 languages are classified as untyped and unsafe. Typed languages can usually
 eliminate the need for many run-time checks by performing them at compile-time.
 
-In some cases untyped languages provide a higher level of expressibility for
+In some cases, untyped languages provide a higher level of expressibility for
 the programmer, as there are fewer type restrictions on each operation.
 LISP is known for its expressive power due to its ability to treat programs and
 data as one and the same thing. A consequence of this is the ease of which
@@ -280,9 +314,9 @@ is of type $Bool$.
 \section{Type Checking}
 \label{sec:Chap1TypeChecking}
 The type checker is the next component in the compiler pipeline after the
-lexing/parsing unit. As an input, the type checker receives an Abstract Syntax
-Tree from the parser. The tree is a representation of the syntactical structure
-of the program. The type checker steps through this Abstract Syntax Tree, applying
+lexing/parsing unit. As an input, the type checker receives an abstract syntax
+tree from the parser. The tree is a representation of the syntactical structure
+of the program. The type checker steps through this abstract syntax tree, applying
 type rules like those discussed in the previous section, to each node. If we
 can construct a tree of type rule deductions in this fashion, then we have a
 proof that all expressions and statements in that program are type consistent.
@@ -313,12 +347,12 @@ $False$ to $\bot$ and the type $Bool$ to $\mathbb{B}$.
     \caption{A abstract syntax tree for a simple boolean expression, and its corresponding proof tree}
     \label{fig:ParseAndProofTree}
 \end{figure}
-Notice how the proof tree mirrors the structure of the Abstract Syntax Tree.
-Each type rule application happens at a node in the parse tree.
+Notice how the proof tree mirrors the structure of the abstract syntax tree.
+Each type rule application happens at a node in the abstract syntax tree.
 
 \section{Generating Type Checkers vs. Generating Lexers \& Parsers}
 The mathematical tools of choice for a compiler designer looking to design
-a Lexer or Parser for their language are the Finite State Automaton and the
+a lexer or parser for their language are the Finite State Automaton and the
 Pushdown Automaton. These automata are well understood by the computer science
 community, so much so that computer programs exist which can take descriptions
 of these machines in the form of Regular Expressions and Context-Free Grammars
@@ -327,9 +361,10 @@ are incredibly useful for compiler designers, and speed up the design and
 implementation phases of compiler construction. Examples of such Lexer and Parser
 generators are Alex and Happy, which are employed by the BNFC tool.
 
-Whilst the methods of expressing Lexers and Parsers seems to be agreed on by
-many, the best way of describing a Type System or a Static Semantics is still
-debated \cite{NeilJones}.
+Whilst the methods of expressing lexers and parsers seems to be agreed on by
+many, the ways of generating type checkers still seem primitive. If type checkers
+could be generated in the same fashion as lexers and parsers, an entire compiler
+front-end could be generated from just a few specifications.
 
 % Exploration of currently available tools and key texts and literature
 \chapter{Literature Review}
@@ -423,10 +458,14 @@ semantic rules.
 
 \subsection{Example: Assigning Types to Declared Variables}
 Louden provides a good simple example of an attribute grammar for variable
-declarations in a C-like language \cite{Louden}, shown in Figure 
+declarations in a C-like language \cite[p.~266]{Louden}, shown in Figure 
 \ref{fig:AttributeGrammar}. Some symbols have been renamed from the original
 example to improve readability, these are $Type$ to $DataType$, and $dtype$ to
-$type$.
+$type$. The attribute definitions in the example are associated with the
+production rules position-wise. This means the first production rule is 
+associated with the first attribute definition, and so on. The exception in this
+example is the $VarList_1 \rightarrow id "," VarList_2$, which has the 4th and
+5th attribute definitions associated with it.
 
 \begin{figure}
     \begin{minipage}[b]{.5\textwidth}
@@ -452,7 +491,7 @@ $type$.
         \subcaption{Attribute Definitions}
         \label{fig:AttributeDefinitions}
     \end{minipage}
-    \caption{An attribute grammar for variable declarations}
+    \caption{An attribute grammar for variable declarations \cite[p.~266]{Louden}}
     \label{fig:AttributeGrammar}
 \end{figure}
 
@@ -462,9 +501,8 @@ with each set of semantic rules mapped to each grammar production.
 Using these graphs, we can construct the dependency graph for our input string 
 by uniting the associated dependency graph for each rule used in the derivation 
 of our parse tree \cite{Louden}. This dependency graph will tell us what order 
-we should annotate the parse tree nodes . The resulting annotated parse tree 
-is shown in Figure \ref{fig:AGAnnotatedParseTree}, with the dependency graph 
-overlayed with dashed lines.
+we should annotate the parse tree nodes. The resulting annotated parse tree 
+is shown in Figure \ref{fig:AGAnnotatedParseTree}.
 
 \begin{figure}
     \Tree [.Decl\\(type=integer) [.DataType\\(type=integer) int ] 
@@ -542,18 +580,15 @@ From looking at the function signature, it can be seen that map only works on
 lists. But what if we wanted to apply map to a data structure other than list?
 The Functor allows us to do this. A data structure is considered a Functor if
 it provides an implementation of the \lstinline{fmap} function, with the
-following type signature:
+following type signature \cite{HuttonHaskell}:
 \lstinputlisting{code-examples/fmap.hs}
 Here, \lstinline{f} is our data structure. The \lstinline{fmap} function
-generalises the map function to some data structure \lstinline{f}. An example
-of this concept being used specifically in this project could be...
-
-\textit{I'm working on a suitable example for this section...}
+generalises the map function to some data structure \lstinline{f}. 
 
 \subsection{Monads}
 We can extend the concept of the Functor further to make use of another
 abstraction known as a Monad. A Monad is a data structure which implements the
-following two operations, described here in Haskell:
+following two operations, described here in Haskell \cite{HuttonHaskell}:
 \lstinputlisting{code-examples/monad.hs}
 Monads provide us with a way of seperating pure and impure computation which
 may have side-effects. A very useful application of this is in error handling
@@ -565,22 +600,12 @@ the BNFC tool and stored in the {\ttfamily ErrM.hs} file mentioned in Section
 \lstinputlisting{code-examples/err.hs}
 If the computation is successful then we can return some value of type
 {\ttfamily a}, otherwise we return a string which explains the error. The
-{\ttfamily >>=} operator provides us with to chain together computations using
-the {\ttfamily Err} data type. If at any point the computation produces an
+{\ttfamily >>=} operator provides us with a way to chain together computations 
+using the {\ttfamily Err} data type. If at any point the computation produces an
 error, we can simply propagate the error message to the end of the computation
-chain. Consider the following type checking code:
-%\lstinputlisting{code-examples/monad_type_check.hs}
+chain. 
 
-\textit{Working on a do-notation example demonstrating the Err data structure...}
-
-\subsection{Catamorphisms}
-
-\cite{PierceCategory}
-\cite{MilewskiCTFP}
-\cite{HuttonHaskell}
-\cite{Catamorphisms}
-
-\section{Advanced Type Rules \& Context}
+\section{Type Rules \& Context Representation}
 With attribute grammars annotating the program abstract syntax tree with type
 information using attributes, an alternative approach involves processing the
 abstract syntax tree using pattern matching functions in a functional programming
@@ -601,7 +626,7 @@ Haskell and seem to have a predictable form which can be generated. Consider
 the following Haskell source code:
 \lstinputlisting{code-examples/and_type_rule.hs}
 
-The consequents of the rule appear as arguments to the check function on the
+The consequent of the rule appears as an argument to the check function on the
 left hand side, and the antecedents appear as the function body on the right
 hand side. The TrueLiteral and FalseLiteral rules return \lstinline{Ok True}
 because they are axioms and have no antecedents. Type rules which don't mutate
@@ -611,6 +636,7 @@ implementations will begin to develop when we need to start considering the
 program context when type checking.
 
 \subsection{Context, Environment \& Scoping}
+\label{sec:Contexts}
 If we are type checking an expression that is incredibly simple and only uses
 literal values such as True, False and 42, then we won't need to consult the
 program context. Unfortunately, programming languages which only make use of
@@ -638,9 +664,10 @@ names to their corresponding input and output types, and a list of hash maps
 mapping variable names to types. The function declarations remain global and can
 be seen as they are acquired by the type checker. The contexts can be pushed
 and popped from the context stack as they are encountered when traversing the
-parse tree.
+abstract syntax tree.
 
 \subsection{More Advanced Type Rules}
+\label{sec:AdvancedRules}
 Now consider the following type rule for type checking a variable, and its
 corresponding code:
 \begin{displaymath}
@@ -651,7 +678,7 @@ corresponding code:
 This rule seems more complicated to express in a programming language, as it
 requires us to check whether we have a variable binding in our context which
 matches the variable we are checking. Looking up a variable would be considered
-a side-condition in a type rules, and it seems that any rules which have
+a side-condition in a type rule, and it seems that any rules which have
 side-conditions will be harder to generate.
 
 \chapter{Problem Analysis}
@@ -659,8 +686,9 @@ side-conditions will be harder to generate.
 \section{Focusing the Project}
 In order to give this project focus, a hypothesis and research question need to
 be formulated, along with expected observations. This allows the 
-success of the project to be measured by comparing the initial predictions with 
-the results, and discussing the implications. Using the project brief and the
+success of the project to be measured by comparing the results with
+the hypothesis, and seeing if the research question has been answered. 
+Using the project brief and the
 knowledge gathered from the literature review, the following hypothesis has been
 formulated:
 \begin{hypothesis}
@@ -671,7 +699,10 @@ The reasoning behind this hypothesis is based on the conclusions reached in
 Section \ref{sec:ImplAndCritique} regarding the complexities of implementing 
 attribute grammars, as well as the fact that attribute grammars are 
 themselves context-free grammars with added complexity, as shown in Definition 
-\ref{def:AG} in Section \ref{sec:FormalDefinition}.
+\ref{def:AG} in Section \ref{sec:FormalDefinition}. The difficulty of forming
+representations of type rules with side conditions in a programming language,
+as shown in Section \ref{sec:AdvancedRules}, also influences this hypothesis 
+choice.
 To help define a scope of investigation for this hypothesis, a research question 
 is derived from it. By combining the research question with the constraints of the
 project brief, we can clearly establish the project's scope and minimise any 
@@ -681,6 +712,8 @@ ambiguity regarding the aims of the project and what we are investigating.
     given a source language specification and a set of type rules, will produce 
     a type checker for the source language?
 \end{researchquestion}
+This research question is what the project aims to answer and will be revisited
+in the conclusion.
 
 
 \chapter{Solution Design}
@@ -727,7 +760,7 @@ environment in which the type checker generation will occur. We will assume that
 \end{enumerate}
 
 \section{Relating Source Languages to the Generation Pipeline}
-In the previous sections, we have discussed methods of type checking and where
+In Section \ref{sec:Chap1TypeChecking}, we discussed where
 the type checker sits in the source language compiler pipeline. To better 
 understand where the generator sits in relation to this pipeline, a diagram 
 relating the two is shown in Figure \ref{fig:SoftwareComponents}. The parts of 
@@ -796,7 +829,7 @@ to describe type rules seems like a good place to start.
 \end{figure}
 
 \subsection{Maintaining Generality}
-One of the caveats we need to consider is how to keep the language as general as
+One important detail we need to consider is how to keep the language as general as
 possible, in order to satisfy requirement 5. Suppose we had the following type rule expressed in our description
 language:
 \lstinputlisting{code-examples/specific_rule.txt}
@@ -855,7 +888,7 @@ fundamental types of a simple procedural language. The language should also be
 designed in such a way that it is easy to extend to support new types. To achieve
 this support, the language should have its own set of types independent of the
 source language, rather than trying to reason about the source language types
-using the types themselves. This is because if we are trying to reason generally
+using the source types themselves. This is because if we are trying to reason generally
 about types with varying size, the source language type annotations may not
 be sufficient to achieve this. For example, a record type could have up to $n$
 members stored within it, but the source language record syntax may require the
@@ -901,7 +934,8 @@ it comes to type checking. Statements could be described as separate objects fro
 expressions, as they don't evaluate to a value in the same way expressions do. On
 the other hand, statements could be considered a \textit{special form of
     expression}, which evaluate to type {\ttfamily Unit}, the type containing
-a single value. It is up to the language designer to decide how they wish to
+a single value \cite{PierceTAPL}. It is up to the language designer to decide 
+how they wish to
 treat these two fundamental objects, but both cases should be accounted for
 in order to make the type system description language more widely applicable.
 
@@ -919,7 +953,7 @@ grouping rules whose consequents are statements.
 
 As stated by assumption 3 in Section \ref{sec:Assumptions}, there needs to be
 a labelled BNF production rule describing the construction of a program in the
-source language. Similarly, there also needs to be a top-level program type
+source language. Similarly, there also needs to be a top-level program type rule
 declared which states how to type check a program at the top level. How
 a program is defined is subjective to the language designer, it may be described
 as a sequence of statements, or just a single expression. As we are not allowed
@@ -932,23 +966,64 @@ An example of all 3 syntax blocks described in this section are shown in the
 example below:
 \lstinputlisting{code-examples/syntax_blocks.txt}
 
-\subsection{Adding a Context Description System}
-
-\subsection{Adding Support for Different Side-Conditions}
-
 \chapter{Solution Testing \& Effectiveness}
 
-\section{Test Cases}
+\section{Comments on Final Implementation}
+Unfortunately, due to the short time span of this project, some 
+important features were unable to be implemented. These were:
+\begin{itemize}
+    \item Type rule side conditions
+    \item A context description system
+\end{itemize}
+Both of these features are required in order to model the environments discussed
+in Section \ref{sec:Chap1TypeSystems} and Section \ref{sec:Contexts}. 
+Many language constructs such as variables and functions rely on these features 
+in order to be type checked successfully, so failing to implement these has 
+resulted in the range of languages which the generator can support being fairly 
+limited.
 
-\section{Limitations}
 
-\subsection{Description Language}
+\section{Test Case: Language N}
+To test the generator's effectiveness, the test language \textit{N} was used.
+\textit{N} is a language with a basic set of features used as an example in the 
+2nd Year IMPL module. The language contains only the features stated by 
+requirement 2 in Section \ref{sec:Requirements}, which makes it a good test case 
+for the generator and description language. The {\ttfamily .cf} file for
+\textit{N} has been submitted with this document.
 
-\subsection{Generator}
+\section{Results \& Evaluation}
+After attempting to describe the type rules of \textit{N} using the description 
+language, I immediately came across a limitation of my description language. 
+As I was unable to successfully implement the concept of side conditions 
+successfully in the description language, I was unable to describe the type rules 
+required for type checking variables, blocks and procedures. 
+Unfortunately this meant the type checking code for these constructs could not be 
+generated. The remaining statements and expressions however, were able to be 
+described by the description language and type checking code was successfully 
+generated. Thus, a subset of the language which didn't contain side conditions 
+could successfully have a type checker generated for it. 
+
+Examples of valid and invalid \textit{N} code to test can be found in the 
+{\ttfamily n\_file} text files submitted with this document.
 
 \chapter{Conclusion}
 
+\section{Answering the Research Question}
+This project has shown that generating type checking code is possible and can
+be successful. However the challenge of keeping the type rule description language
+general to as many programming languages as possible, is particularly hard to
+overcome without losing a large amount of knowledge about the source language
+being described. This loss of knowledge makes it difficult to specify exact
+error information about a particular expression or statement that is failing,
+resulting in vague type error diagnostics from the generated type checker.
+
 \section{Future Work}
+Finishing the implementation of side conditions and the context description 
+system is the obvious next step for any future work carried out with this 
+project. This would drastically increase the number of language constructs that 
+type checking code could be generated for. After that working on extending
+the number of supported types that the description language can model would also
+increase the power of the generator.
 
 \printbibliography
 \end{document}
