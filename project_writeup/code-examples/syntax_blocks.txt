@@ -1,0 +1,23 @@
+Program:
+    Rule: P {
+        Ants:
+            "s": Stm
+        Csqnt:
+            "Prog s": Prog
+    }
+
+Expressions:
+    Rule: EInt {
+        Ants:
+        Csqnt:
+            "Intg a": Int
+    }
+    
+Statements:
+    Rule: Print {
+        Ants:
+            "e": Int,
+        Csqnt:
+            "Prnt e": Stm
+    };
+
