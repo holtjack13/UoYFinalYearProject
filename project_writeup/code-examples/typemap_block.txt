@@ -1,0 +1,4 @@
+TypeMap:
+    "TInt" -> Int
+    "TBool" -> Bool
+    "TChar" -> Char

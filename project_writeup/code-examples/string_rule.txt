@@ -1,3 +1,6 @@
-Add:
-    {"a": Int, "b": Int}
-    "a+b": Int
+Rule: Add {
+    Ants:
+        "a": Int, "b": Int
+    Csqnt:
+        "a+b": Int
+}

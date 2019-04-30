@@ -1,4 +1,8 @@
-RuleName:
-    {J_1, ... J_n}
-    [Side-Conditions]
-    C
+Rule: ruleName { 
+    Ants:
+        J_1, ..., J_n
+    Conds:
+        Side-Conditions
+    Csqnt:
+        C
+}

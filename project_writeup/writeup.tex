@@ -44,7 +44,7 @@
 % Front Matter:
 \title{Generation of Type Checking Code}
 \author{Jack Holt}
-\date{25th April 2019}
+\date{30th April 2019}
 \supervisor{Jeremy L. Jacob}
 \BEng % Degree Type
 
@@ -90,17 +90,22 @@ difficulty of keeping the type system language generic.
 \section{Report Structure}
 This report is structured into chapters as follows:
 \begin{enumerate}
-    \item Background: A section explaining the required pre-requisite topics
-        before more complex ideas and methods are introduced
-    \item Literature Review: A section exploring methods of type checking,
-        functional programming and its suitability to type checker generation, 
-        and advanced type rules
-    \item Problem Analysis: 
-    \item Solution Design:
-    \item Implementation: A section discussing the software implementation of
-        the language and generator
-    \item Results \& Evaluation: A discussion of the results and the success
-        of the project
+    \item Background: An explanation of the required pre-requisite topics
+        before more complex ideas and methods are introduced.
+    \item Literature Review: An exploration of type checking methods,
+        functional programming and the paradigm's suitability to type checker 
+        generation, and advanced type rules.
+    \item Problem Analysis: A refinement of the project brief and the research
+        conducted in the literature review into a research question, with
+        predictions made about the project outcome.
+    \item Solution Design: A discussion of the project requirements, and how
+        the description language and generator have been designed to meet these
+        requirements.
+    \item Results \& Evaluation: An evaluation of the effectiveness of the 
+        generator and description language, along with a discussion of their
+        limitations. 
+    \item Conclusion: A summary of the project outcomes, and a reiteration of
+        potential future work and study.
 \end{enumerate}
 
 \chapter{Background}
@@ -185,11 +190,6 @@ interest.
 \end{figure}
 
 \section{Static Semantics}
-% Talk about how static semantics are usually derived from
-% dynamic semantics to prove that the relationship between the two is preserved.
-% For this project, not our responsibility to do this, we are trying to create
-% a system which generates a type checker from specified type rules. The
-% derivation of these rules is not performed by the program.
 The concept of type checking falls under the study of programming language
 semantics, the study of program meaning (as opposed to language syntax, which is
 the study of program form) \cite[\S3.1, p.~114]{Sebesta}. It is vital for the 
@@ -249,10 +249,17 @@ statements of the form:
     \Gamma \vdash \mathbb{A}
 \end{displaymath}
 Here, $\mathbb{A}$ represents an assertion which is made about some object and
-its type. $\Gamma$ represents the environment (or context as it's sometimes
-referred to) in which the assertion in evaluated. This notation is used by both
-Cardelli \cite[p.~8]{CSHandbook} and by Ranta \cite[\S4.4, p.~60]{Ranta} to 
-describe judgements.
+its type. When reasoning about programming languages, the objects in our
+assertions are almost always expressions or statements, with the assertions
+expressed as:
+\begin{displaymath}
+    a: T
+\end{displaymath}
+where $a$ is an expression or statement in the language we are reasoning about,
+and $T$ is the type that $a$ evaluates to. $\Gamma$ represents the 
+environment (or context as it's sometimes referred to) in which the assertion 
+in evaluated. This notation is used by both Cardelli \cite[p.~8]{CSHandbook} 
+and by Ranta \cite[\S4.4, p.~60]{Ranta} to describe judgements.
 
 The decision to express type rules using this style of notation stems from the 
 desire to maintain a common language of type rules for readers of Ranta's key
@@ -699,19 +706,25 @@ following requirements:
 \end{enumerate}
 
 \section{Initial Assumptions}
+\label{sec:Assumptions}
 Before we can begin designing the language or the generator, we must first state 
 some initial assumptions being made about the state of the inputs, and the 
 environment in which the type checker generation will occur. We will assume that:
-\begin{itemize}
+\begin{enumerate}
     \item The source language specification is a Labelled BNF Grammar, stored 
         in a {\ttfamily .cf} file, within the same directory as the type
-        checker generator. This is to satisfy the first requirement.
+        checker generator. This is to satisfy requirement 1.
     \item The BNFC tool has successfully generated a working lexer/parser unit
         for the input source language, with the modules generated from that
         process available in the current directory. This is to provide the
         generator with a predictable set of data structures and parser functions 
         to work with.
-\end{itemize}
+    \item There is a production rule in the source language specification 
+        describing the construction of a program, using the non-terminal symbol 
+        {\ttfamily Program}. This is so a function can be generated to parse the 
+        input source program using the correct parsing function, which will 
+        allow the type checker to check it.
+\end{enumerate}
 
 \section{Relating Source Languages to the Generation Pipeline}
 In the previous sections, we have discussed methods of type checking and where
@@ -828,7 +841,7 @@ help of the user. The string idea can still be used, but instead of encoding
 the syntax of the source language, the user provides the BNF label used in their
 language specification for the construct they are describing, along with the
 construct parameters. For example, if the add operation {\ttfamily a+b} has
-the Labelled BNF production
+the following labelled BNF production in the source language specification:
 \lstinputlisting{code-examples/lbnf_add.txt}
 then the type rule for this expression would be represented as:
 \lstinputlisting{code-examples/AS_rule.txt}
@@ -860,7 +873,7 @@ description language expressions:
     \item {\ttfamily Char}: Single characters encoded as 8 bit values
     \item {\ttfamily String}: Sequences of characters
     \item {\ttfamily Bool}: Boolean values
-    \item {\ttfamily Stm}: Statement type (synonymous with the {\ttfamily Unit}
+    \item {\ttfamily Stm}: Statement type (synonymous with the {\ttfamily ()}
         type in Haskell)
 \end{itemize}
 Requirement 3 can be satisfied with the addition of the following expressions
@@ -874,14 +887,68 @@ the description language:
     \item {\ttfamily Pointer[T]}: Pointer to value of type T.
 \end{itemize}
 
+In order for the generator to correctly insert the relevant source type BNF labels into the type checker, a syntax for associating the labels
+with the description language types needs to be constructed. 
+This can be achieved with a block containing pairs made up of a source type
+label, with its corresponding description language type. An example is shown 
+below:
+\lstinputlisting{code-examples/typemap_block.txt}
+
+\subsection{Distinguishing Between Programs, Statements \& Expressions}
+As mentioned in Section \ref{sec:Chap1TypeSystems}, expressions and statements 
+are seen as the fundamental objects reasoned about in programming languages when 
+it comes to type checking. Statements could be described as separate objects from 
+expressions, as they don't evaluate to a value in the same way expressions do. On
+the other hand, statements could be considered a \textit{special form of
+    expression}, which evaluate to type {\ttfamily Unit}, the type containing
+a single value. It is up to the language designer to decide how they wish to
+treat these two fundamental objects, but both cases should be accounted for
+in order to make the type system description language more widely applicable.
+
+If a language designer treats expressions and statements separately, using 
+different non-terminals in their specification to describe each, we need to
+create different type checking functions for each construct. This is because
+a single type checking function expects an input of a certain type (either 
+expression or statement), and so can only handle inputs of that type. As each
+type rule declared in the description language corresponds to a pattern matching
+line in a type checking function, the rules relating to statements need to be
+distinguished from rules relating to expressions, to ensure the functions are
+defined properly. This can be achieved by introducing two different syntax blocks,
+one for grouping rules whose consequents are expressions, and another for
+grouping rules whose consequents are statements. 
+
+As stated by assumption 3 in Section \ref{sec:Assumptions}, there needs to be
+a labelled BNF production rule describing the construction of a program in the
+source language. Similarly, there also needs to be a top-level program type
+declared which states how to type check a program at the top level. How
+a program is defined is subjective to the language designer, it may be described
+as a sequence of statements, or just a single expression. As we are not allowed
+to know how the designer has described the syntactic formation of a program in
+the source language, we do not know whether we will be using the type checking
+function for expressions or for statements. Thus, the top-level program should
+be given its own type checking function, and consequently its own syntax block.
+
+An example of all 3 syntax blocks described in this section are shown in the
+example below:
+\lstinputlisting{code-examples/syntax_blocks.txt}
 
 \subsection{Adding a Context Description System}
 
 \subsection{Adding Support for Different Side-Conditions}
 
-\chapter{Implementation}
+\chapter{Solution Testing \& Effectiveness}
 
-\chapter{Results and Evaluation}
+\section{Test Cases}
+
+\section{Limitations}
+
+\subsection{Description Language}
+
+\subsection{Generator}
+
+\chapter{Conclusion}
+
+\section{Future Work}
 
 \printbibliography
 \end{document}
